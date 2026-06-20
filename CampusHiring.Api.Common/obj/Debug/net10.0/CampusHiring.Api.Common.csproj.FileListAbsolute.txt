@@ -1,0 +1,11 @@
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\bin\Debug\net10.0\CampusHiring.Api.Common.deps.json
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\bin\Debug\net10.0\CampusHiring.Api.Common.dll
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\bin\Debug\net10.0\CampusHiring.Api.Common.pdb
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\CampusHiring.Api.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\CampusHiring.Api.Common.AssemblyInfoInputs.cache
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\CampusHiring.Api.Common.AssemblyInfo.cs
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\CampusHiring.Api.Common.csproj.CoreCompileInputs.cache
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\CampusHiring.Api.Common.dll
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\refint\CampusHiring.Api.Common.dll
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\CampusHiring.Api.Common.pdb
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\ref\CampusHiring.Api.Common.dll

@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="CampusHiring.Api.Common/CampusHiring.Api.Common.csproj" />
+  <Project Path="CampusHiring.Api/CampusHiring.Api.csproj" />
+  <Project Path="CampusHiring.Domain/CampusHiring.Api.Domain.csproj" />
+</Solution>
