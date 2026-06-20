@@ -1,6 +1,0 @@
-@CampusHiringApi.Domain_HostAddress = http://localhost:5128
-
-GET {{CampusHiringApi.Domain_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
