@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="CampusHiring.Api.Application/CampusHiring.Api.Application.csproj" Id="10e7e466-aa5a-4e59-9b23-7263408fa6ff" />
   <Project Path="CampusHiring.Api.Common/CampusHiring.Api.Common.csproj" />
   <Project Path="CampusHiring.Api/CampusHiring.Api.csproj" />
   <Project Path="CampusHiring.Domain/CampusHiring.Api.Domain.csproj" />

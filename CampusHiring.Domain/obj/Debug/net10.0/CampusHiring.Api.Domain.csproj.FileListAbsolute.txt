@@ -15,3 +15,4 @@ C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Domain\obj\Debug\net10
 C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Domain\obj\Debug\net10.0\CampusHiring.Api.Domain.pdb
 C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Domain\obj\Debug\net10.0\CampusHiring.Api.Domain.genruntimeconfig.cache
 C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Domain\obj\Debug\net10.0\ref\CampusHiring.Api.Domain.dll
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Domain\obj\Debug\net10.0\CampusHiring.Api.Domain.sourcelink.json

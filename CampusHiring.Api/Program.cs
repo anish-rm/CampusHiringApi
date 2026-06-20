@@ -1,3 +1,6 @@
+using CampusHiring.Api.Application.Contracts;
+using CampusHiring.Api.Application.MappingProfiles;
+using CampusHiring.Api.Application.Services;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +20,10 @@ builder.Services.AddDbContext<CampusHiringDbContext>(options =>
 builder.Services.AddIdentityApiEndpoints<User>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<CampusHiringDbContext>();
+
+builder.Services.AddScoped<IAssessmentsService, AssessmentsService>();
+
+builder.Services.AddAutoMapper(cfg => { }, typeof(AssessmentMappingProfile).Assembly);
 
 builder.Services.AddControllers()
     .AddJsonOptions(opt =>
