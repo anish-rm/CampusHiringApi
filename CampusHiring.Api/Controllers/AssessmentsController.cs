@@ -8,7 +8,7 @@ namespace CampusHiring.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AssessmentsController(IAssessmentsService assessmentsService) : ControllerBase
+    public class AssessmentsController(IAssessmentsService assessmentsService) : BaseApiController
     {
 
         // GET: api/Assessments
@@ -16,21 +16,16 @@ namespace CampusHiring.Api.Controllers
         public async Task<ActionResult<IEnumerable<GetAssessmentsDto>>> GetAssessments()
         {
             var assessments = await assessmentsService.GetAssessmentsAsync();
-            return Ok(assessments);
+            return ToActionResult(assessments);
         }
 
         // GET: api/Assessments/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<GetAssessmentDto>> GetAssessment(int id)
+        public async Task<ActionResult<GetAssessmentDto?>> GetAssessment(int id)
         {
             var assessment = await assessmentsService.GetAssessmentAsync(id);
 
-            if (assessment == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(assessment);
+            return ToActionResult(assessment);
         }
 
         // PUT: api/Assessments/5
@@ -38,28 +33,11 @@ namespace CampusHiring.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAssessment(int id, UpdateAssessmentDto updateAssessmentDto)
         {
-            if (id != updateAssessmentDto.Id)
-            {
-                return BadRequest();
-            }
+            
+            var result = await assessmentsService.UpdateAssessmentAsync(id, updateAssessmentDto);
+           
 
-            try
-            {
-                await assessmentsService.UpdateAssessmentAsync(id, updateAssessmentDto);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await assessmentsService.AssessmentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return ToActionResult(result);
         }
 
         // POST: api/Assessments
@@ -69,16 +47,21 @@ namespace CampusHiring.Api.Controllers
         {
             var assessment = await assessmentsService.CreateAssessmentAsync(createAssessmentDto);
 
-            return CreatedAtAction("GetAssessment", new { id = assessment.Id }, assessment);
+            if (!assessment.IsSuccess)
+            {
+                return MapToErrors(assessment.Errors);
+            }
+
+            return CreatedAtAction("GetAssessment", new { id = assessment.Value!.Id }, assessment);
         }
 
         // DELETE: api/Assessments/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAssessment(int id)
         {
-            await assessmentsService.DeleteAssessmentAsync(id);
+            var result = await assessmentsService.DeleteAssessmentAsync(id);
 
-            return NoContent();
+            return ToActionResult(result);
         }
 
     }

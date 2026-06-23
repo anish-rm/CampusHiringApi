@@ -1,4 +1,5 @@
-﻿using CampusHiring.Api.Common.Results;
+﻿using CampusHiring.Api.Common.Constants;
+using CampusHiring.Api.Common.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CampusHiring.Api.Controllers;
@@ -32,21 +33,21 @@ public abstract class BaseApiController : ControllerBase
 
         return e.Code switch
         {
-            "NotFound" => Problem(
+            ErrorCodes.NotFound => Problem(
                 statusCode: StatusCodes.Status404NotFound,
                 title: "Resource not found",
                 detail: errorDetails
                 ),
-            "Validation" => ValidationProblem(
+            ErrorCodes.Validation => ValidationProblem(
                 title: "Validation Failed",
                 detail: errorDetails
                 ),
-            "BadRequest" => Problem(
+            ErrorCodes.BadRequest => Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "Bad Request",
                 detail: errorDetails
                 ),
-            "Forbid" => Problem(
+            ErrorCodes.Forbid => Problem(
                 statusCode: StatusCodes.Status403Forbidden,
                 title: "Forbidden",
                 detail: errorDetails
