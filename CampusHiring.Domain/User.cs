@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CampusHiring.Api.Domain;
 
@@ -11,4 +12,6 @@ public class User : IdentityUser
 
     public DateTime UpdatedAt {  get; set; }
     public bool IsActive { get; set; } = true;
+    [NotMapped]
+    public string FullName => $"{FirstName} {LastName}";
 }
