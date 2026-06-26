@@ -1,4 +1,5 @@
 ﻿using CampusHiring.Api.Common.Constants;
+using CampusHiring.Api.Common.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace CampusHiring.Api.Application.DTOs.Auth;
@@ -14,6 +15,12 @@ public class RegisterUserDto : IValidatableObject
     [Required, MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
     public string Role {  get; set; } = RoleNames.Student;
+    public int Cgpa { get; set; }
+    public int Batch { get; set; }
+    public Department Department { get; set; }
+    public string ResumeUrl { get; set; } = string.Empty;
+    public string Designation { get; set; } = string.Empty;
+
     public int? AssociatedCollegeId { get; set; }
     public int? AssociatedCompanyId { get; set; }
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

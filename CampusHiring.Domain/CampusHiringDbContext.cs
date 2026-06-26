@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 
 namespace CampusHiring.Api.Domain;
 
@@ -22,6 +21,7 @@ public class CampusHiringDbContext : IdentityDbContext<User>
     public DbSet<CandidateSelection> CandidateSelections { get; set; }
     public DbSet<AssessmentType> AssessmentTypes { get; set; }
     public DbSet<Assessment> Assessments { get; set; }
+    public DbSet<CollegeAdmin> CollegeAdmins { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

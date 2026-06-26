@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	<NoWarn>$(NoWarn);NU1901</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +19,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\CampusHiring.Api.Application\CampusHiring.Api.Application.csproj" />
     <ProjectReference Include="..\CampusHiring.Domain\CampusHiring.Api.Domain.csproj" />

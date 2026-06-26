@@ -185,6 +185,30 @@ namespace CampusHiring.Api.Domain.Migrations
                     b.ToTable("Colleges");
                 });
 
+            modelBuilder.Entity("CampusHiring.Api.Domain.CollegeAdmin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CollegeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollegeId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CollegeAdmins");
+                });
+
             modelBuilder.Entity("CampusHiring.Api.Domain.Company", b =>
                 {
                     b.Property<int>("Id")
@@ -405,7 +429,7 @@ namespace CampusHiring.Api.Domain.Migrations
                     b.Property<int>("Cgpa")
                         .HasColumnType("int");
 
-                    b.Property<int>("CollegeId")
+                    b.Property<int?>("CollegeId")
                         .HasColumnType("int");
 
                     b.Property<string>("Department")
@@ -696,6 +720,25 @@ namespace CampusHiring.Api.Domain.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("CampusHiring.Api.Domain.CollegeAdmin", b =>
+                {
+                    b.HasOne("CampusHiring.Api.Domain.College", "College")
+                        .WithMany()
+                        .HasForeignKey("CollegeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CampusHiring.Api.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("College");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CampusHiring.Api.Domain.Interview", b =>
                 {
                     b.HasOne("CampusHiring.Api.Domain.Company", "Company")
@@ -784,9 +827,7 @@ namespace CampusHiring.Api.Domain.Migrations
                 {
                     b.HasOne("CampusHiring.Api.Domain.College", "College")
                         .WithMany("Students")
-                        .HasForeignKey("CollegeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CollegeId");
 
                     b.HasOne("CampusHiring.Api.Domain.User", "User")
                         .WithMany()

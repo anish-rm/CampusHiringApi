@@ -10,3 +10,5 @@ C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\n
 C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\CampusHiring.Api.Common.pdb
 C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\ref\CampusHiring.Api.Common.dll
 C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\CampusHiring.Api.Common.sourcelink.json
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\bin\Debug\net10.0\CampusHiring.Api.Common.runtimeconfig.json
+C:\Users\Anish\source\repos\CampusHiring.Api\CampusHiring.Api.Common\obj\Debug\net10.0\CampusHiring.Api.Common.genruntimeconfig.cache
