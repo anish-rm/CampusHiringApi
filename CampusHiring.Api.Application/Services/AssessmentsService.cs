@@ -79,6 +79,10 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
     public async Task<Result> DeleteAssessmentAsync(int id)
     {
         var assessment = await context.Assessments.FindAsync(id);
+        if (assessment == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Assessment with id {id} not found"));
+        }
         context.Assessments.Remove(assessment);
         await context.SaveChangesAsync();
 

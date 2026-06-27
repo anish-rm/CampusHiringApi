@@ -21,6 +21,7 @@ public class UsersService(UserManager<User> userManager, CampusHiringDbContext c
     {
         var user = new User
         {
+            UserName = userDto.Email,
             Email = userDto.Email,
             FirstName = userDto.FirstName,
             LastName = userDto.LastName,
@@ -100,7 +101,7 @@ public class UsersService(UserManager<User> userManager, CampusHiringDbContext c
         var user = await userManager.FindByEmailAsync(userDto.Email);
         if(user == null)
         {
-            return Result<string>.NotFound(new Error(ErrorCodes.NotFound, $"User with email {userDto.Email} not found");
+            return Result<string>.NotFound(new Error(ErrorCodes.NotFound, $"User with email {userDto.Email} not found"));
         }
         var isPasswordValid = await userManager.CheckPasswordAsync(user, userDto.Password);
         if (!isPasswordValid)

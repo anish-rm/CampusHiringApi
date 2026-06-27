@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CampusHiring.Api.Application.DTOs;
 using CampusHiring.Api.Application.DTOs.Auth;
+using CampusHiring.Api.Application.DTOs.College;
 using CampusHiring.Api.Domain;
 
 namespace CampusHiring.Api.Application.MappingProfiles;
@@ -34,5 +35,15 @@ public class UserMappingProfile : Profile
     public UserMappingProfile()
     {
         CreateMap<RegisterUserDto, Student>();
+    }
+}
+
+public class CollegeMappingProfile : Profile
+{
+    public CollegeMappingProfile()
+    {
+        CreateMap<College, GetCollegesDto>();
+        CreateMap<UpdateCollegeDto, College>();
+        CreateMap<CreateCollegeDto, College>();
     }
 }

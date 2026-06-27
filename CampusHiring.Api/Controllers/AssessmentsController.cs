@@ -52,7 +52,7 @@ namespace CampusHiring.Api.Controllers
                 return MapToErrors(assessment.Errors);
             }
 
-            return CreatedAtAction("GetAssessment", new { id = assessment.Value!.Id }, assessment);
+            return CreatedAtAction("GetAssessment", new { id = assessment.Value!.Id }, assessment.Value);
         }
 
         // DELETE: api/Assessments/5
