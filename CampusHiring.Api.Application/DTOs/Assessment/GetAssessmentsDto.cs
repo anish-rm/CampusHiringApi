@@ -1,4 +1,4 @@
-﻿namespace CampusHiring.Api.Application.DTOs;
+﻿namespace CampusHiring.Api.Application.DTOs.Assessment;
 
 public class GetAssessmentsDto
 {

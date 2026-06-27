@@ -4,6 +4,7 @@ using CampusHiring.Api.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CampusHiring.Api.Domain.Migrations
 {
     [DbContext(typeof(CampusHiringDbContext))]
-    partial class CampusHiringDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260627185825_UpdateCompanyFields")]
+    partial class UpdateCompanyFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -431,7 +434,7 @@ namespace CampusHiring.Api.Domain.Migrations
                     b.Property<int>("Cgpa")
                         .HasColumnType("int");
 
-                    b.Property<int>("CollegeId")
+                    b.Property<int?>("CollegeId")
                         .HasColumnType("int");
 
                     b.Property<string>("Department")
@@ -859,9 +862,7 @@ namespace CampusHiring.Api.Domain.Migrations
                 {
                     b.HasOne("CampusHiring.Api.Domain.College", "College")
                         .WithMany("Students")
-                        .HasForeignKey("CollegeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CollegeId");
 
                     b.HasOne("CampusHiring.Api.Domain.User", "User")
                         .WithMany()

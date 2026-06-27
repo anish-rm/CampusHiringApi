@@ -17,6 +17,6 @@ public class Student
     public int Batch { get; set; }
     public Department Department { get; set; }
     public string ResumeUrl { get; set; } = string.Empty;
-    public int? CollegeId { get; set; }
+    public int CollegeId { get; set; }
     public College? College { get; set; }
 }

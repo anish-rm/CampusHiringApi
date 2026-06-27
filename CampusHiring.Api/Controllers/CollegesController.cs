@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CampusHiring.Api.Domain;
-using CampusHiring.Api.Application.Services;
 using CampusHiring.Api.Application.DTOs.College;
+using CampusHiring.Api.Application.Contracts;
 
 namespace CampusHiring.Api.Controllers
 {

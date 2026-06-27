@@ -1,4 +1,4 @@
-﻿using CampusHiring.Api.Application.DTOs;
+﻿using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Common.Results;
 
 namespace CampusHiring.Api.Application.Contracts

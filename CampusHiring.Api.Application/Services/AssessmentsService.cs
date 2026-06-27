@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using CampusHiring.Api.Application.Contracts;
-using CampusHiring.Api.Application.DTOs;
+using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;

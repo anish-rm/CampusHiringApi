@@ -1,7 +1,7 @@
 ﻿using CampusHiring.Api.Application.DTOs.College;
 using CampusHiring.Api.Common.Results;
 
-namespace CampusHiring.Api.Application.Services
+namespace CampusHiring.Api.Application.Contracts
 {
     public interface ICollegesService
     {

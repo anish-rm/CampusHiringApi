@@ -2,7 +2,7 @@
 
 public class Company : BasicInfo
 {
-    public string? Type { get; set; }
-    public string? Website { get; set; }
+    public string Type { get; set; } = string.Empty;
+    public string Website { get; set; } = string.Empty;
     public IList<Interviewer> Interviewers { get; set; } = [];
 }

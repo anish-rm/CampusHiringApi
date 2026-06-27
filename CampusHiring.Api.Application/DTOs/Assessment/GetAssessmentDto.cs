@@ -1,6 +1,6 @@
 ﻿using CampusHiring.Api.Common.Enums;
 
-namespace CampusHiring.Api.Application.DTOs;
+namespace CampusHiring.Api.Application.DTOs.Assessment;
 
 public class GetAssessmentDto
 {

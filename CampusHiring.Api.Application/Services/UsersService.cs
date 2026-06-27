@@ -44,6 +44,7 @@ public class UsersService(UserManager<User> userManager, CampusHiringDbContext c
             }
 
             var student = mapper.Map<Student>(userDto);
+            student.CollegeId = userDto.AssociatedCollegeId ?? 0;
             student.UserId = user.Id;
             context.Students.Add(student);
             await context.SaveChangesAsync();
@@ -60,6 +61,7 @@ public class UsersService(UserManager<User> userManager, CampusHiringDbContext c
 
             var interviewer = new Interviewer
             {
+                CompanyId = userDto.AssociatedCompanyId ?? 0,
                 Designation = userDto.Designation,
                 UserId = user.Id,
             };

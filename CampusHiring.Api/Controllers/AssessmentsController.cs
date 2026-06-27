@@ -1,5 +1,5 @@
 ﻿using CampusHiring.Api.Application.Contracts;
-using CampusHiring.Api.Application.DTOs;
+using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
