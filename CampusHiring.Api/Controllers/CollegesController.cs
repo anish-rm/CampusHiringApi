@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using CampusHiring.Api.Domain;
 using CampusHiring.Api.Application.DTOs.College;
 using CampusHiring.Api.Application.Contracts;
+using CampusHiring.Api.AuthorizationFilter;
+using Microsoft.AspNetCore.Authorization;
+using CampusHiring.Api.Common.Constants;
 
 namespace CampusHiring.Api.Controllers
 {
@@ -35,6 +38,7 @@ namespace CampusHiring.Api.Controllers
         // PUT: api/Colleges/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [CollegeOrSystemAdmin]
         public async Task<IActionResult> PutCollege(int id, UpdateCollegeDto college)
         {
             var result = await collegesService.UpdateCollegeAsync(id, college);
@@ -45,6 +49,7 @@ namespace CampusHiring.Api.Controllers
         // POST: api/Colleges
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles =RoleNames.Admin)]
         public async Task<ActionResult<GetCollegesDto>> PostCollege(CreateCollegeDto college)
         {
             var result = await collegesService.CreateCollegeAsync(college);
@@ -58,6 +63,7 @@ namespace CampusHiring.Api.Controllers
 
         // DELETE: api/Colleges/5
         [HttpDelete("{id}")]
+        [CollegeOrSystemAdmin]
         public async Task<IActionResult> DeleteCollege(int id)
         {
             var result = await collegesService.DeleteCollegeAsync(id);

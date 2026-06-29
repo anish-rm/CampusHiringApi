@@ -9,6 +9,8 @@ using CampusHiring.Api.Domain;
 using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.Company;
 using CampusHiring.Api.Common.Results;
+using Microsoft.AspNetCore.Authorization;
+using CampusHiring.Api.Common.Constants;
 
 namespace CampusHiring.Api.Controllers
 {
@@ -35,6 +37,7 @@ namespace CampusHiring.Api.Controllers
         // PUT: api/Companies/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<IActionResult> PutCompany(int id, UpdateCompanyDto company)
         {
             var result = await companiesService.UpdateCompanyAsync(id, company);
@@ -45,6 +48,7 @@ namespace CampusHiring.Api.Controllers
         // POST: api/Companies
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<ActionResult<Company>> PostCompany(CreateCompanyDto company)
         {
             var result = await companiesService.CreateCompanyAsync(company);
@@ -57,6 +61,7 @@ namespace CampusHiring.Api.Controllers
 
         // DELETE: api/Companies/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<IActionResult> DeleteCompany(int id)
         {
             var result = await companiesService.DeleteCompanyAsync(id);
