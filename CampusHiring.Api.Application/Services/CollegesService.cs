@@ -54,7 +54,7 @@ public class CollegesService(CampusHiringDbContext context, IMapper mapper) : IC
         {
             return Result.NotFound(new Error(ErrorCodes.NotFound, $"College with email {collegeDto.Email} already exists"));
         }
-
+        //sening results
         mapper.Map(collegeDto, college);
         college.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
