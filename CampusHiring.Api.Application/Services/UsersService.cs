@@ -15,6 +15,7 @@ using Error = CampusHiring.Api.Common.Results.Error;
 
 namespace CampusHiring.Api.Application.Services;
 
+//userservice
 public class UsersService(UserManager<User> userManager, CampusHiringDbContext context, IMapper mapper, IOptions<JwtSettings> jwtOptions) : IUsersService
 {
     public async Task<Result<RegisteredUserDto>> RegisterUserAsync(RegisterUserDto userDto)
