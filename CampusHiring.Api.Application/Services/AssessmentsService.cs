@@ -89,6 +89,21 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         return Result.Success();
     }
 
+    public async Task<Result<GetAssessmentTypeDto>> CreateAssessmentTypeAsync(CreateAssessmentTypeDto assessmentTypeDto)
+    {
+        var company = await context.Companies.FindAsync(assessmentTypeDto.CompanyId);
+        if(company == null)
+        {
+            return Result<GetAssessmentTypeDto>.NotFound(new Error(ErrorCodes.NotFound, $"Company with id {assessmentTypeDto.CompanyId} not found"));
+        }
+
+        var assessmentType = mapper.Map<AssessmentType>(assessmentTypeDto);
+        context.AssessmentTypes.Add(assessmentType);
+        await context.SaveChangesAsync();
+        var resultDto = mapper.Map<GetAssessmentTypeDto>(assessmentType);
+        return Result<GetAssessmentTypeDto>.Success(resultDto);
+    }
+
 
     public async Task<bool> AssessmentExists(int id)
     {

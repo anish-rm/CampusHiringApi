@@ -57,6 +57,17 @@ namespace CampusHiring.Api.Controllers
             return CreatedAtAction("GetAssessment", new { id = assessment.Value!.Id }, assessment.Value);
         }
 
+        [HttpPost("type")]
+        public async Task<ActionResult<GetAssessmentTypeDto>> PostAssessmentType(CreateAssessmentTypeDto createAssessmentTypeDto)
+        {
+            var result = await assessmentsService.CreateAssessmentTypeAsync(createAssessmentTypeDto);
+            if (!result.IsSuccess)
+            {
+                return MapToErrors(result.Errors);
+            }
+            return CreatedAtAction("GetAssessmentType", new {id = result.Value!.Id}, result.Value);
+        }
+
         // DELETE: api/Assessments/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAssessment(int id)

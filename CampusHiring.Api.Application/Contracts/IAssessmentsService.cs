@@ -11,5 +11,6 @@ namespace CampusHiring.Api.Application.Contracts
         Task<Result> UpdateAssessmentAsync(int id, UpdateAssessmentDto updateAssessmentDto);
         Task<Result<GetAssessmentDto>> CreateAssessmentAsync(CreateAssessmentDto createAssessmentDto);
         Task<Result> DeleteAssessmentAsync(int id);
+        Task<Result<GetAssessmentTypeDto>> CreateAssessmentTypeAsync(CreateAssessmentTypeDto assessmentTypeDto);
     }
 }
