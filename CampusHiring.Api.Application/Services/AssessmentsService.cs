@@ -88,7 +88,6 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
 
         return Result.Success();
     }
-
     public async Task<Result<GetAssessmentTypeDto>> CreateAssessmentTypeAsync(CreateAssessmentTypeDto assessmentTypeDto)
     {
         var company = await context.Companies.FindAsync(assessmentTypeDto.CompanyId);

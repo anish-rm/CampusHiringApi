@@ -1,5 +1,6 @@
 ﻿using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.Assessment;
+using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,9 +55,9 @@ namespace CampusHiring.Api.Controllers
                 return MapToErrors(assessment.Errors);
             }
 
-            return CreatedAtAction("GetAssessment", new { id = assessment.Value!.Id }, assessment.Value);
+            return CreatedAtAction("GetAssessments", new { id = assessment.Value!.Id }, assessment.Value);
         }
-
+        [Authorize(Roles = RoleNames.Admin)]
         [HttpPost("type")]
         public async Task<ActionResult<GetAssessmentTypeDto>> PostAssessmentType(CreateAssessmentTypeDto createAssessmentTypeDto)
         {
@@ -65,7 +66,7 @@ namespace CampusHiring.Api.Controllers
             {
                 return MapToErrors(result.Errors);
             }
-            return CreatedAtAction("GetAssessmentType", new {id = result.Value!.Id}, result.Value);
+            return CreatedAtAction("GetAssessment", new {id = result.Value!.Id}, result.Value);
         }
 
         // DELETE: api/Assessments/5

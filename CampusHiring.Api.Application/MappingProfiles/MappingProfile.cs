@@ -28,6 +28,9 @@ public class AssessmentMappingProfile : Profile
 
         CreateMap<UpdateAssessmentDto, Assessment>();
         CreateMap<CreateAssessmentDto, Assessment>();
+        CreateMap<CreateAssessmentTypeDto, AssessmentType>();
+        CreateMap<AssessmentType, GetAssessmentTypeDto>();
+
     }
 }
 
