@@ -11,6 +11,7 @@ using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.AuthorizationFilter;
 using Microsoft.AspNetCore.Authorization;
 using CampusHiring.Api.Common.Constants;
+using CampusHiring.Api.Application.DTOs.Student;
 
 namespace CampusHiring.Api.Controllers
 {
@@ -32,6 +33,13 @@ namespace CampusHiring.Api.Controllers
         {
             var result = await collegesService.GetCollegeAsync(id);
 
+            return ToActionResult(result);
+        }
+
+        [HttpGet("{id}/students")]
+        public async Task<ActionResult<IEnumerable<GetStudentDto>>> GetCollegeStudents(int id)
+        {
+            var result = await collegesService.GetCollegeStudentsAsync(id);
             return ToActionResult(result);
         }
 

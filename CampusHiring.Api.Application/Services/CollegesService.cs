@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.College;
+using CampusHiring.Api.Application.DTOs.Student;
 using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;
@@ -35,6 +36,23 @@ public class CollegesService(CampusHiringDbContext context, IMapper mapper) : IC
         }
 
         return Result<GetCollegesDto>.Success(college);
+    }
+
+    public async Task<Result<IEnumerable<GetStudentDto>>> GetCollegeStudentsAsync(int collegeId)
+    {
+        var students = await context.Students
+                        .Where(s => s.CollegeId == collegeId)
+                        .ProjectTo<GetStudentDto>(mapper.ConfigurationProvider)
+                        .ToListAsync();
+        if(students.Count == 0)
+        {
+            var college = await context.Colleges.FindAsync(collegeId);
+            if(college == null)
+            {
+                return Result<IEnumerable<GetStudentDto>>.NotFound(new Error(ErrorCodes.NotFound, $"College with id {collegeId} is not found"));
+            }
+        }
+        return Result<IEnumerable<GetStudentDto>>.Success(students);
     }
 
     public async Task<Result> UpdateCollegeAsync(int id, UpdateCollegeDto collegeDto)

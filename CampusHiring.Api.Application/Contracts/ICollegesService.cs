@@ -1,4 +1,5 @@
 ﻿using CampusHiring.Api.Application.DTOs.College;
+using CampusHiring.Api.Application.DTOs.Student;
 using CampusHiring.Api.Common.Results;
 
 namespace CampusHiring.Api.Application.Contracts
@@ -9,6 +10,7 @@ namespace CampusHiring.Api.Application.Contracts
         Task<Result> DeleteCollegeAsync(int id);
         Task<Result<GetCollegesDto>> GetCollegeAsync(int id);
         Task<Result<IEnumerable<GetCollegesDto>>> GetCollegesAsync();
+        Task<Result<IEnumerable<GetStudentDto>>> GetCollegeStudentsAsync(int collegeId);
         Task<Result> UpdateCollegeAsync(int id, UpdateCollegeDto collegeDto);
     }
 }

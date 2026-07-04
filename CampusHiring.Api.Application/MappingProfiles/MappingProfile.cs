@@ -3,6 +3,7 @@ using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Application.DTOs.Auth;
 using CampusHiring.Api.Application.DTOs.College;
 using CampusHiring.Api.Application.DTOs.Company;
+using CampusHiring.Api.Application.DTOs.Student;
 using CampusHiring.Api.Domain;
 
 namespace CampusHiring.Api.Application.MappingProfiles;
@@ -59,5 +60,13 @@ public class CompanyMappingProfile : Profile
         CreateMap<Company, GetCompanyDto>();
         CreateMap<UpdateCompanyDto, Company>();
         CreateMap<CreateCompanyDto, Company>();
+    }
+}
+
+public class StudentMappingProfile : Profile
+{
+    public StudentMappingProfile()
+    {
+        CreateMap<Student, GetStudentDto>();
     }
 }
