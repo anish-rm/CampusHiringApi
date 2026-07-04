@@ -8,6 +8,7 @@ public class AssessmentType
     public int PassScore { get; set; }
     public int Duration { get; set; }
     public string Description { get; set; } = string.Empty;
+    public int Round {  get; set; }
     public int CompanyId { get; set; }
     public Company? Company { get; set; }
     public IEnumerable<Assessment> Assessments { get; set; } = [];

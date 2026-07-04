@@ -88,6 +88,51 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
 
         return Result.Success();
     }
+
+    //Assesment Type
+    public async Task<Result<IEnumerable<GetAssessmentTypeDto>>> GetAssessmentTypesAsync()
+    {
+        var assessmentTypes = await context.AssessmentTypes
+                        .AsNoTracking()
+                        .ProjectTo<GetAssessmentTypeDto>(mapper.ConfigurationProvider)
+                        .ToListAsync();
+
+        return Result<IEnumerable<GetAssessmentTypeDto>>.Success(assessmentTypes);
+    }
+
+    public async Task<Result<GetAssessmentTypeDto>> GetAssessmentTypeAsync(int id)
+    {
+        var assessmentType = await context.AssessmentTypes
+            .AsNoTracking()
+            .Where(a => a.Id == id)
+            .ProjectTo<GetAssessmentTypeDto>(mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
+
+        if (assessmentType == null)
+        {
+            return Result<GetAssessmentTypeDto>.NotFound(new Error(ErrorCodes.NotFound, $"Assessment Type with id {id} not found"));
+        }
+
+        return Result<GetAssessmentTypeDto>.Success(assessmentType);
+    }
+
+    public async Task<Result> UpdateAssessmentTypeAsync(int id,UpdateAssessmentTypeDto assessmentTypeDto)
+    {
+        if(id != assessmentTypeDto.Id)
+        {
+            return Result.BadRequest(new Error(ErrorCodes.BadRequest, $"Id {id} is not matching with provided id {assessmentTypeDto.Id}"));
+        }
+        var assessmentType = await context.AssessmentTypes.FindAsync(id);
+
+        if (assessmentType == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Assessment Type with id {id} not found"));
+        }
+
+        mapper.Map(assessmentTypeDto, assessmentType);
+        await context.SaveChangesAsync();
+        return Result.Success();
+    }
     public async Task<Result<GetAssessmentTypeDto>> CreateAssessmentTypeAsync(CreateAssessmentTypeDto assessmentTypeDto)
     {
         var company = await context.Companies.FindAsync(assessmentTypeDto.CompanyId);
@@ -102,7 +147,81 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         var resultDto = mapper.Map<GetAssessmentTypeDto>(assessmentType);
         return Result<GetAssessmentTypeDto>.Success(resultDto);
     }
+    public async Task<Result> DeleteAssessmentTypeAsync(int id)
+    {
+        var assessmentType = await context.AssessmentTypes.FindAsync(id);
 
+        if (assessmentType == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Assessment Type with id {id} not found"));
+        }
+        context.AssessmentTypes.Remove(assessmentType);
+        await context.SaveChangesAsync();
+        return Result.Success();
+    }
+
+    public async Task<Result> AssignAssessments(int collegeId, int assessmentTypeId, int round = 1)
+    {
+        var assessmentType = await context.AssessmentTypes.FindAsync(assessmentTypeId);
+        if (assessmentType == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Assessment Type with id {assessmentTypeId} not found"));
+        }
+
+        var studentsIds = await context.Students
+            .Where(s => s.CollegeId == collegeId)
+            .Select(s => s.UserId)
+            .ToListAsync();
+
+        if(studentsIds.Count == 0)
+        {
+            var college = await context.Colleges.FindAsync(collegeId);
+            if (college == null)
+            {
+                return Result.NotFound(new Error(ErrorCodes.NotFound, $"College with id {collegeId} not found"));
+            }
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"No students in the given college"));
+        }
+
+        var assignedStudentIds = await context.Assessments
+            .Where(a => a.AssessmentTypeId == assessmentTypeId && studentsIds.Contains(a.StudentUserId))
+            .Select(a => a.StudentUserId)
+            .ToListAsync();
+
+
+        int previousRound = round - 1;
+        var clearedStudentsIds = round > 1 ? await context.Assessments
+            .Where(a => studentsIds.Contains(a.StudentUserId) 
+                        && a.Round == previousRound 
+                        && a.Result == "Pass")
+            .Select(a => a.StudentUserId)
+            .ToListAsync() : studentsIds;
+       
+
+        var newAssessments = clearedStudentsIds
+            .Where(sid => !assignedStudentIds.Contains(sid))
+            .Select(sid => new Assessment
+            {
+                StudentUserId = sid,
+                CompanyId = assessmentType.CompanyId,
+                AssessmentTypeId = assessmentTypeId,
+                AssessmentDate = DateTime.UtcNow,
+                Round = round
+            })
+            .ToList();
+
+        if(newAssessments.Count == 0)
+        {
+            return Result.BadRequest(new Error(ErrorCodes.BadRequest, $"Students are already assigned with given assessment Type"));
+        }
+
+
+        context.Assessments.AddRange(newAssessments);
+        await context.SaveChangesAsync();
+
+        return Result.Success();
+
+    }
 
     public async Task<bool> AssessmentExists(int id)
     {

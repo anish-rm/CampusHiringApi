@@ -30,7 +30,7 @@ public class AssessmentMappingProfile : Profile
         CreateMap<CreateAssessmentDto, Assessment>();
         CreateMap<CreateAssessmentTypeDto, AssessmentType>();
         CreateMap<AssessmentType, GetAssessmentTypeDto>();
-
+        CreateMap<UpdateAssessmentTypeDto, AssessmentType>();
     }
 }
 

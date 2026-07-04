@@ -12,5 +12,9 @@ namespace CampusHiring.Api.Application.Contracts
         Task<Result<GetAssessmentDto>> CreateAssessmentAsync(CreateAssessmentDto createAssessmentDto);
         Task<Result> DeleteAssessmentAsync(int id);
         Task<Result<GetAssessmentTypeDto>> CreateAssessmentTypeAsync(CreateAssessmentTypeDto assessmentTypeDto);
+        Task<Result> DeleteAssessmentTypeAsync(int id);
+        Task<Result> UpdateAssessmentTypeAsync(int id, UpdateAssessmentTypeDto assessmentTypeDto);
+        Task<Result<GetAssessmentTypeDto>> GetAssessmentTypeAsync(int id);
+        Task<Result<IEnumerable<GetAssessmentTypeDto>>> GetAssessmentTypesAsync();
     }
 }

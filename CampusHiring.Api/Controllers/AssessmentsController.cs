@@ -4,7 +4,6 @@ using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CampusHiring.Api.Controllers
 {
@@ -57,17 +56,6 @@ namespace CampusHiring.Api.Controllers
 
             return CreatedAtAction("GetAssessments", new { id = assessment.Value!.Id }, assessment.Value);
         }
-        [Authorize(Roles = RoleNames.Admin)]
-        [HttpPost("type")]
-        public async Task<ActionResult<GetAssessmentTypeDto>> PostAssessmentType(CreateAssessmentTypeDto createAssessmentTypeDto)
-        {
-            var result = await assessmentsService.CreateAssessmentTypeAsync(createAssessmentTypeDto);
-            if (!result.IsSuccess)
-            {
-                return MapToErrors(result.Errors);
-            }
-            return CreatedAtAction("GetAssessment", new {id = result.Value!.Id}, result.Value);
-        }
 
         // DELETE: api/Assessments/5
         [HttpDelete("{id}")]
@@ -75,6 +63,46 @@ namespace CampusHiring.Api.Controllers
         {
             var result = await assessmentsService.DeleteAssessmentAsync(id);
 
+            return ToActionResult(result);
+        }
+
+        [HttpGet("types")]
+        public async Task<ActionResult<IEnumerable<GetAssessmentTypeDto>>> GetAssessementTypes()
+        {
+            var result = await assessmentsService.GetAssessmentTypesAsync();
+            return ToActionResult(result);
+        }
+
+        [HttpGet("types/{id}")]
+        public async Task<ActionResult<GetAssessmentTypeDto>> GetAssessementType(int id)
+        {
+            var result = await assessmentsService.GetAssessmentTypeAsync(id);
+            return ToActionResult(result);
+        }
+
+        [HttpPut("types/{id}")]
+        public async Task<ActionResult> UpdateAssessementType(int id,UpdateAssessmentTypeDto assessmentTypeDto)
+        {
+            var result = await assessmentsService.UpdateAssessmentTypeAsync(id,assessmentTypeDto);
+            return ToActionResult(result);
+        }
+
+        [Authorize(Roles = RoleNames.Admin)]
+        [HttpPost("types")]
+        public async Task<ActionResult<GetAssessmentTypeDto>> PostAssessmentType(CreateAssessmentTypeDto createAssessmentTypeDto)
+        {
+            var result = await assessmentsService.CreateAssessmentTypeAsync(createAssessmentTypeDto);
+            if (!result.IsSuccess)
+            {
+                return MapToErrors(result.Errors);
+            }
+            return CreatedAtAction("GetAssessment", new { id = result.Value!.Id }, result.Value);
+        }
+
+        [HttpDelete("types/{id}")]
+        public async Task<ActionResult> DeleteAssessementType(int id)
+        {
+            var result = await assessmentsService.DeleteAssessmentTypeAsync(id);
             return ToActionResult(result);
         }
 
