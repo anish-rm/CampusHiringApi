@@ -67,6 +67,7 @@ public class StudentMappingProfile : Profile
 {
     public StudentMappingProfile()
     {
-        CreateMap<Student, GetStudentDto>();
+        CreateMap<Student, GetStudentDto>()
+            .ForMember(d => d.CollegeName, cfg => cfg.MapFrom(s => s.College != null ? s.College.Name : string.Empty));
     }
 }

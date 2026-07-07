@@ -1,4 +1,5 @@
 ﻿using CampusHiring.Api.Application.DTOs.Assessment;
+using CampusHiring.Api.Common.Enums;
 using CampusHiring.Api.Common.Results;
 
 namespace CampusHiring.Api.Application.Contracts
@@ -16,5 +17,6 @@ namespace CampusHiring.Api.Application.Contracts
         Task<Result> UpdateAssessmentTypeAsync(int id, UpdateAssessmentTypeDto assessmentTypeDto);
         Task<Result<GetAssessmentTypeDto>> GetAssessmentTypeAsync(int id);
         Task<Result<IEnumerable<GetAssessmentTypeDto>>> GetAssessmentTypesAsync();
+        Task<Result> AssignAssessments(int collegeId, int assessmentTypeId, int batch, IEnumerable<Department> depts, int round = 1);
     }
 }

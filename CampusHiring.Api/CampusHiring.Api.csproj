@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-	<NoWarn>$(NoWarn);NU1901</NoWarn>
+	<NoWarn>$(NoWarn);NU1901;NU1903</NoWarn>
 	<UserSecretsId>f27781c8-2fdb-4e41-a212-ce3dc36570aa</UserSecretsId>
   </PropertyGroup>
 

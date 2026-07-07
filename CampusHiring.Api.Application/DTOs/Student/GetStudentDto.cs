@@ -10,5 +10,5 @@ public class GetStudentDto
     public int Batch { get; set; }
     public Department Department { get; set; }
     public string ResumeUrl { get; set; } = string.Empty;
-    public int CollegeId { get; set; }
+    public string CollegeName { get; set; } = string.Empty;
 }

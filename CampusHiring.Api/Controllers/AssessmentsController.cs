@@ -1,6 +1,7 @@
 ﻿using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Common.Constants;
+using CampusHiring.Api.Common.Enums;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -103,6 +104,14 @@ namespace CampusHiring.Api.Controllers
         public async Task<ActionResult> DeleteAssessementType(int id)
         {
             var result = await assessmentsService.DeleteAssessmentTypeAsync(id);
+            return ToActionResult(result);
+        }
+
+        [HttpPost("assign/{collegeId:int}/{assessmentTypeId:int}/{batch:int}/{round:int}")]
+        public async Task<ActionResult> AssignAssessments([FromRoute]int collegeId, [FromRoute]int assessmentTypeId, [FromRoute]int batch, [FromRoute] int round,[FromQuery]IEnumerable<Department> departments)
+        {
+            var result = await assessmentsService.AssignAssessments(collegeId,assessmentTypeId,batch,departments,round);
+        
             return ToActionResult(result);
         }
 

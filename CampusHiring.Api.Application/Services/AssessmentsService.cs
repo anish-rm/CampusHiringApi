@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Common.Constants;
+using CampusHiring.Api.Common.Enums;
 using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -160,7 +161,7 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         return Result.Success();
     }
 
-    public async Task<Result> AssignAssessments(int collegeId, int assessmentTypeId, int round = 1)
+    public async Task<Result> AssignAssessments(int collegeId, int assessmentTypeId, int batch, IEnumerable<Department> depts, int round = 1)
     {
         var assessmentType = await context.AssessmentTypes.FindAsync(assessmentTypeId);
         if (assessmentType == null)
@@ -168,12 +169,16 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
             return Result.NotFound(new Error(ErrorCodes.NotFound, $"Assessment Type with id {assessmentTypeId} not found"));
         }
 
+        var deptList = (depts ?? Enumerable.Empty<Department>()).ToList();
+
         var studentsIds = await context.Students
-            .Where(s => s.CollegeId == collegeId)
+            .Where(s => s.CollegeId == collegeId
+                        && s.Batch == batch
+                        && deptList.Contains(s.Department))
             .Select(s => s.UserId)
             .ToListAsync();
 
-        if(studentsIds.Count == 0)
+        if (studentsIds.Count == 0)
         {
             var college = await context.Colleges.FindAsync(collegeId);
             if (college == null)
