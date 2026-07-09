@@ -11,5 +11,5 @@ public class AssessmentType
     public int Round {  get; set; }
     public int CompanyId { get; set; }
     public Company? Company { get; set; }
-    public IEnumerable<Assessment> Assessments { get; set; } = [];
+    public IList<Assessment> Assessments { get; set; } = [];
 }

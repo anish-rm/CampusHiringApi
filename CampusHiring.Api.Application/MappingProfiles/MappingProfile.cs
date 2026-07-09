@@ -13,7 +13,9 @@ public class AssessmentMappingProfile : Profile
     public AssessmentMappingProfile()
     {
         CreateMap<Assessment, GetAssessmentsDto>()
-            .ForMember(d => d.StudentName, cfg => cfg.MapFrom(s => s.Student != null ? s.Student.User.UserName : string.Empty))
+            .ForMember(d => d.StudentName, cfg => cfg.MapFrom(s => s.Student != null ? s.Student!.User!.UserName : string.Empty))
+            .ForMember(d => d.CollegeName, cfg => cfg.MapFrom(s => s.Student != null ? s.Student!.College!.Name : string.Empty))
+            .ForMember(d => d.Department, cfg => cfg.MapFrom(s => s.Student!.Department))
             .ForMember(d => d.CompanyName, cfg => cfg.MapFrom(s => s.Company != null ? s.Company.Name : string.Empty))
             .ForMember(d => d.AssessmentType, cfg => cfg.MapFrom(s => s.AssessmentType != null ? s.AssessmentType.Name : string.Empty));
 

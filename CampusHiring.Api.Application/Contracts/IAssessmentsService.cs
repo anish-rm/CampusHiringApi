@@ -18,5 +18,6 @@ namespace CampusHiring.Api.Application.Contracts
         Task<Result<GetAssessmentTypeDto>> GetAssessmentTypeAsync(int id);
         Task<Result<IEnumerable<GetAssessmentTypeDto>>> GetAssessmentTypesAsync();
         Task<Result> AssignAssessments(int collegeId, int assessmentTypeId, int batch, IEnumerable<Department> depts, int round = 1);
+        Task<Result<IEnumerable<GetAssessmentDto>>> GetAssessmentOfCollegeAsync(int collegeId);
     }
 }

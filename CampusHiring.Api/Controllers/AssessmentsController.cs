@@ -31,6 +31,14 @@ namespace CampusHiring.Api.Controllers
             return ToActionResult(assessment);
         }
 
+        [HttpGet("college/{collegeId}")]
+        public async Task<ActionResult<IEnumerable<GetAssessmentDto>>> GetCollegeAssessment(int collegeId)
+        {
+            var assessment = await assessmentsService.GetAssessmentOfCollegeAsync(collegeId);
+
+            return ToActionResult(assessment);
+        }
+
         // PUT: api/Assessments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

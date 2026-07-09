@@ -37,6 +37,26 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         return Result<GetAssessmentDto?>.Success(assessment);
     }
 
+    public async Task<Result<IEnumerable<GetAssessmentDto>>> GetAssessmentOfCollegeAsync(int collegeId)
+    {
+        var assessment = await context.Assessments
+            .Where(a => a.Student!.CollegeId == collegeId)
+            .AsNoTracking()
+            .ProjectTo<GetAssessmentDto>(mapper.ConfigurationProvider)
+            .ToListAsync();
+
+        if (assessment.Count == 0)
+        {
+            var college = await context.Colleges.FindAsync(collegeId);
+            if(college == null)
+            {
+                return Result<IEnumerable<GetAssessmentDto>>.NotFound(new Error(ErrorCodes.NotFound, $"College with id {collegeId} not found"));
+            }
+        }
+
+        return Result<IEnumerable<GetAssessmentDto>>.Success(assessment);
+    }
+
     public async Task<Result> UpdateAssessmentAsync(int id, UpdateAssessmentDto updateAssessmentDto)
     {
         if (id != updateAssessmentDto.Id)
