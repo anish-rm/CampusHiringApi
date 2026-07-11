@@ -12,4 +12,5 @@ public class CreateAssessmentTypeDto
     public int Duration { get; set; }
     public string Description { get; set; } = string.Empty;
     public required int CompanyId { get; set; }
+    public int Round { get; set; }
 }

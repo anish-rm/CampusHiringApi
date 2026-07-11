@@ -8,5 +8,4 @@ public class ErrorCodes
     public const string Forbid = "Forbid";
     public const string Conflict = "Conflict";
     public const string Failure = "Failure";
-
 }

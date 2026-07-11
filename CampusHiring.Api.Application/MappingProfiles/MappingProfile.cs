@@ -17,7 +17,9 @@ public class AssessmentMappingProfile : Profile
             .ForMember(d => d.CollegeName, cfg => cfg.MapFrom(s => s.Student != null ? s.Student!.College!.Name : string.Empty))
             .ForMember(d => d.Department, cfg => cfg.MapFrom(s => s.Student!.Department))
             .ForMember(d => d.CompanyName, cfg => cfg.MapFrom(s => s.Company != null ? s.Company.Name : string.Empty))
-            .ForMember(d => d.AssessmentType, cfg => cfg.MapFrom(s => s.AssessmentType != null ? s.AssessmentType.Name : string.Empty));
+            .ForMember(d => d.AssessmentType, cfg => cfg.MapFrom(s => s.AssessmentType != null ? s.AssessmentType.Name : string.Empty))
+            .ForMember(d => d.StudentId, cfg => cfg.MapFrom(s => s.StudentUserId))
+            .ForMember(d => d.CompanyId, cfg => cfg.MapFrom(s => s.CompanyId));
 
         CreateMap<Assessment, GetAssessmentDto>()
             .ForMember(d => d.StudentName, cfg => cfg.MapFrom(s => s.Student != null ? s.Student.User.UserName : string.Empty))
@@ -27,7 +29,9 @@ public class AssessmentMappingProfile : Profile
             .ForMember(d => d.CompanyName, cfg => cfg.MapFrom(s => s.Company != null ? s.Company.Name : string.Empty))
             .ForMember(d => d.AssessmentType, cfg => cfg.MapFrom(s => s.AssessmentType != null ? s.AssessmentType.Name : string.Empty))
             .ForMember(d => d.MaxScore, cfg => cfg.MapFrom(s => s.AssessmentType != null ? s.AssessmentType.MaxScore : 100))
-            .ForMember(d => d.PassScore, cfg => cfg.MapFrom(s => s.AssessmentType != null ? s.AssessmentType.PassScore : 70));
+            .ForMember(d => d.PassScore, cfg => cfg.MapFrom(s => s.AssessmentType != null ? s.AssessmentType.PassScore : 70))
+            .ForMember(d => d.StudentId, cfg => cfg.MapFrom(s => s.StudentUserId))
+            .ForMember(d => d.CompanyId, cfg => cfg.MapFrom(s => s.CompanyId));
 
         CreateMap<UpdateAssessmentDto, Assessment>();
         CreateMap<CreateAssessmentDto, Assessment>();

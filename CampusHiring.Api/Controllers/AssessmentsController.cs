@@ -2,6 +2,7 @@
 using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Common.Enums;
+using CampusHiring.Api.Common.Models.Filtering;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,9 +33,9 @@ namespace CampusHiring.Api.Controllers
         }
 
         [HttpGet("college/{collegeId}")]
-        public async Task<ActionResult<IEnumerable<GetAssessmentDto>>> GetCollegeAssessment(int collegeId)
+        public async Task<ActionResult<IEnumerable<GetAssessmentDto>>> GetCollegeAssessment(int collegeId, [FromQuery]AssessmentFilterParameter filter)
         {
-            var assessment = await assessmentsService.GetAssessmentOfCollegeAsync(collegeId);
+            var assessment = await assessmentsService.GetCollegeAssessmentsAsync(collegeId,filter);
 
             return ToActionResult(assessment);
         }
@@ -115,10 +116,10 @@ namespace CampusHiring.Api.Controllers
             return ToActionResult(result);
         }
 
-        [HttpPost("assign/{collegeId:int}/{assessmentTypeId:int}/{batch:int}/{round:int}")]
-        public async Task<ActionResult> AssignAssessments([FromRoute]int collegeId, [FromRoute]int assessmentTypeId, [FromRoute]int batch, [FromRoute] int round,[FromQuery]IEnumerable<Department> departments)
+        [HttpPost("assign/{collegeId:int}")]
+        public async Task<ActionResult> AssignAssessments([FromRoute]int collegeId, [FromQuery]AssignAssessmentFilterParameter filter)
         {
-            var result = await assessmentsService.AssignAssessments(collegeId,assessmentTypeId,batch,departments,round);
+            var result = await assessmentsService.AssignAssessments(collegeId,filter);
         
             return ToActionResult(result);
         }

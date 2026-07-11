@@ -4,6 +4,7 @@ using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Common.Enums;
+using CampusHiring.Api.Common.Models.Filtering;
 using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -37,10 +38,33 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         return Result<GetAssessmentDto?>.Success(assessment);
     }
 
-    public async Task<Result<IEnumerable<GetAssessmentDto>>> GetAssessmentOfCollegeAsync(int collegeId)
+    public async Task<Result<IEnumerable<GetAssessmentDto>>> GetCollegeAssessmentsAsync(int collegeId, AssessmentFilterParameter filter)
     {
-        var assessment = await context.Assessments
-            .Where(a => a.Student!.CollegeId == collegeId)
+        var query = context.Assessments
+            .Where(a => a.Student!.CollegeId == collegeId);
+
+        if (filter.Result != null)
+        {
+            query = query.Where(a=> a.Result == filter.Result);
+        }
+
+        if (filter.MinScore.HasValue)
+        {
+            query = query.Where(a => a.Score >= filter.MinScore);
+        }
+
+        if (filter.MaxScore.HasValue)
+        {
+            query = query.Where(a => a.Score <= filter.MaxScore);
+        }
+        if (filter.Batch.HasValue)
+        {
+            query = query
+                .Include(a => a.Student)
+                .Where(a => a.Student!.Batch == filter.Batch);
+        }
+
+        var assessment = await query
             .AsNoTracking()
             .ProjectTo<GetAssessmentDto>(mapper.ConfigurationProvider)
             .ToListAsync();
@@ -63,7 +87,11 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         {
             return Result.BadRequest(new Error(ErrorCodes.BadRequest, $"Id {id} is not matching with provided id {updateAssessmentDto.Id}"));
         }
-        var assessment = await context.Assessments.FindAsync(id);
+        var assessment = await context.Assessments
+                .Where(a => a.Id == id)
+                .Include(a => a.AssessmentType)
+                .FirstOrDefaultAsync();
+
         if(assessment == null)
         {
             return Result.NotFound(new Error(ErrorCodes.NotFound, $"Assessment with id {id} not found"));
@@ -82,6 +110,7 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         }
 
         mapper.Map(updateAssessmentDto, assessment);
+        assessment.Result = assessment.Score > 0 && assessment.Score > assessment.AssessmentType!.PassScore ? "Pass" : "Fail";
         //context.Entry(assessment).State = EntityState.Modified;
         context.Assessments.Update(assessment);
         await context.SaveChangesAsync();
@@ -181,20 +210,18 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         return Result.Success();
     }
 
-    public async Task<Result> AssignAssessments(int collegeId, int assessmentTypeId, int batch, IEnumerable<Department> depts, int round = 1)
+    public async Task<Result> AssignAssessments(int collegeId, AssignAssessmentFilterParameter filter)
     {
-        var assessmentType = await context.AssessmentTypes.FindAsync(assessmentTypeId);
+        var assessmentType = await context.AssessmentTypes.FindAsync(filter.AssessmentTypeId);
         if (assessmentType == null)
         {
-            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Assessment Type with id {assessmentTypeId} not found"));
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Assessment Type with id {filter.AssessmentTypeId} not found"));
         }
-
-        var deptList = (depts ?? Enumerable.Empty<Department>()).ToList();
 
         var studentsIds = await context.Students
             .Where(s => s.CollegeId == collegeId
-                        && s.Batch == batch
-                        && deptList.Contains(s.Department))
+                        && s.Batch == filter.Batch
+                        && filter.Departments.Contains(s.Department))
             .Select(s => s.UserId)
             .ToListAsync();
 
@@ -209,29 +236,32 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         }
 
         var assignedStudentIds = await context.Assessments
-            .Where(a => a.AssessmentTypeId == assessmentTypeId && studentsIds.Contains(a.StudentUserId))
+            .Where(a => a.AssessmentTypeId == filter.AssessmentTypeId && studentsIds.Contains(a.StudentUserId))
             .Select(a => a.StudentUserId)
             .ToListAsync();
 
 
-        int previousRound = round - 1;
-        var clearedStudentsIds = round > 1 ? await context.Assessments
+        int previousRound = filter.Round - 1;
+        var clearedStudentsIds = filter.Round > 1 ? await context.Assessments
             .Where(a => studentsIds.Contains(a.StudentUserId) 
                         && a.Round == previousRound 
                         && a.Result == "Pass")
             .Select(a => a.StudentUserId)
             .ToListAsync() : studentsIds;
-       
 
+        if (clearedStudentsIds.Count == 0)
+        {
+            return Result.BadRequest(new Error(ErrorCodes.NotFound, $"No Students cleared round"));
+        }
         var newAssessments = clearedStudentsIds
             .Where(sid => !assignedStudentIds.Contains(sid))
             .Select(sid => new Assessment
             {
                 StudentUserId = sid,
                 CompanyId = assessmentType.CompanyId,
-                AssessmentTypeId = assessmentTypeId,
+                AssessmentTypeId = filter.AssessmentTypeId,
                 AssessmentDate = DateTime.UtcNow,
-                Round = round
+                Round = filter.Round
             })
             .ToList();
 
