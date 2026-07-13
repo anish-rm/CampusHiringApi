@@ -16,6 +16,7 @@ namespace CampusHiring.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CompaniesController(ICompaniesService companiesService) : BaseApiController
     {
         // GET: api/Companies

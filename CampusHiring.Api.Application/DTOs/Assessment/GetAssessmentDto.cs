@@ -18,5 +18,6 @@ public class GetAssessmentDto
     public int PassScore { get; set; }
     public int Score { get; set; }
     public string Result { get; set; } = string.Empty;
+    public int Round {  get; set; }
     public DateTime AssessmentDate { get; set; }
 }

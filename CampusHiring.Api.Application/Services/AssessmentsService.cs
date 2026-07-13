@@ -48,6 +48,11 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
             query = query.Where(a=> a.Result == filter.Result);
         }
 
+        if (filter.Round.HasValue)
+        {
+            query = query.Where(a => a.Round == filter.Round);
+        }
+
         if (filter.MinScore.HasValue)
         {
             query = query.Where(a => a.Score >= filter.MinScore);

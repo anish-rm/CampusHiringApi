@@ -1,7 +1,7 @@
 ﻿using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.Assessment;
+using CampusHiring.Api.AuthorizationFilter;
 using CampusHiring.Api.Common.Constants;
-using CampusHiring.Api.Common.Enums;
 using CampusHiring.Api.Common.Models.Filtering;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +17,7 @@ namespace CampusHiring.Api.Controllers
 
         // GET: api/Assessments
         [HttpGet]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<ActionResult<IEnumerable<GetAssessmentsDto>>> GetAssessments()
         {
             var assessments = await assessmentsService.GetAssessmentsAsync();
@@ -25,6 +26,7 @@ namespace CampusHiring.Api.Controllers
 
         // GET: api/Assessments/5
         [HttpGet("{id}")]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<ActionResult<GetAssessmentDto?>> GetAssessment(int id)
         {
             var assessment = await assessmentsService.GetAssessmentAsync(id);
@@ -33,6 +35,7 @@ namespace CampusHiring.Api.Controllers
         }
 
         [HttpGet("college/{collegeId}")]
+        [CollegeOrSystemAdmin]
         public async Task<ActionResult<IEnumerable<GetAssessmentDto>>> GetCollegeAssessment(int collegeId, [FromQuery]AssessmentFilterParameter filter)
         {
             var assessment = await assessmentsService.GetCollegeAssessmentsAsync(collegeId,filter);
@@ -43,6 +46,7 @@ namespace CampusHiring.Api.Controllers
         // PUT: api/Assessments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<IActionResult> PutAssessment(int id, UpdateAssessmentDto updateAssessmentDto)
         {
             
@@ -55,6 +59,7 @@ namespace CampusHiring.Api.Controllers
         // POST: api/Assessments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<ActionResult<Assessment>> PostAssessment(CreateAssessmentDto createAssessmentDto)
         {
             var assessment = await assessmentsService.CreateAssessmentAsync(createAssessmentDto);
@@ -69,6 +74,7 @@ namespace CampusHiring.Api.Controllers
 
         // DELETE: api/Assessments/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<IActionResult> DeleteAssessment(int id)
         {
             var result = await assessmentsService.DeleteAssessmentAsync(id);
@@ -91,14 +97,15 @@ namespace CampusHiring.Api.Controllers
         }
 
         [HttpPut("types/{id}")]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<ActionResult> UpdateAssessementType(int id,UpdateAssessmentTypeDto assessmentTypeDto)
         {
             var result = await assessmentsService.UpdateAssessmentTypeAsync(id,assessmentTypeDto);
             return ToActionResult(result);
         }
 
-        [Authorize(Roles = RoleNames.Admin)]
         [HttpPost("types")]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<ActionResult<GetAssessmentTypeDto>> PostAssessmentType(CreateAssessmentTypeDto createAssessmentTypeDto)
         {
             var result = await assessmentsService.CreateAssessmentTypeAsync(createAssessmentTypeDto);
@@ -110,6 +117,7 @@ namespace CampusHiring.Api.Controllers
         }
 
         [HttpDelete("types/{id}")]
+        [Authorize(Roles = RoleNames.Admin)]
         public async Task<ActionResult> DeleteAssessementType(int id)
         {
             var result = await assessmentsService.DeleteAssessmentTypeAsync(id);
@@ -117,6 +125,7 @@ namespace CampusHiring.Api.Controllers
         }
 
         [HttpPost("assign/{collegeId:int}")]
+        [CollegeOrSystemAdmin]
         public async Task<ActionResult> AssignAssessments([FromRoute]int collegeId, [FromQuery]AssignAssessmentFilterParameter filter)
         {
             var result = await assessmentsService.AssignAssessments(collegeId,filter);
