@@ -8,6 +8,7 @@ using CampusHiring.Api.Common.Models.Filtering;
 using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;
 using Microsoft.EntityFrameworkCore;
+using static System.Net.WebRequestMethods;
 
 namespace CampusHiring.Api.Application.Services;
 
@@ -215,6 +216,30 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         return Result.Success();
     }
 
+    public async Task<int> GetLastAssessmentRoundAsync(List<string> studentIds, int companyId)
+    {
+        if (studentIds == null || studentIds.Count == 0)
+            return 0;
+        var lastRound = await context.Assessments
+            .Where(a => a.CompanyId == companyId && studentIds.Contains(a.StudentUserId))
+            .Select(a => (int?)a.Round)
+            .MaxAsync();
+
+        return lastRound ?? 0;
+    }
+
+    public async Task<List<string>> GetAssessmentClearedStudentIds(List<string> studentsIds, int previousRound)
+    {
+        var clearedStudentsIds = previousRound > 0 ? await context.Assessments
+            .Where(a => studentsIds.Contains(a.StudentUserId)
+                        && a.Round == previousRound
+                        && a.Result == "Pass")
+            .Select(a => a.StudentUserId)
+            .ToListAsync() : studentsIds;
+
+        return clearedStudentsIds;
+    }
+
     public async Task<Result> AssignAssessments(int collegeId, AssignAssessmentFilterParameter filter)
     {
         var assessmentType = await context.AssessmentTypes.FindAsync(filter.AssessmentTypeId);
@@ -247,12 +272,7 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
 
 
         int previousRound = filter.Round - 1;
-        var clearedStudentsIds = filter.Round > 1 ? await context.Assessments
-            .Where(a => studentsIds.Contains(a.StudentUserId) 
-                        && a.Round == previousRound 
-                        && a.Result == "Pass")
-            .Select(a => a.StudentUserId)
-            .ToListAsync() : studentsIds;
+        var clearedStudentsIds = await GetAssessmentClearedStudentIds(studentsIds, previousRound);
 
         if (clearedStudentsIds.Count == 0)
         {

@@ -3,6 +3,7 @@ using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Application.DTOs.Auth;
 using CampusHiring.Api.Application.DTOs.College;
 using CampusHiring.Api.Application.DTOs.Company;
+using CampusHiring.Api.Application.DTOs.Interview;
 using CampusHiring.Api.Application.DTOs.Student;
 using CampusHiring.Api.Domain;
 
@@ -75,5 +76,17 @@ public class StudentMappingProfile : Profile
     {
         CreateMap<Student, GetStudentDto>()
             .ForMember(d => d.CollegeName, cfg => cfg.MapFrom(s => s.College != null ? s.College.Name : string.Empty));
+    }
+}
+
+public class InterviewMappingProfile : Profile
+{
+    public InterviewMappingProfile()
+    {
+        CreateMap<InterviewRound, GetInterviewRoundDto>()
+            .ForMember(d => d.CompanyName , cfg => cfg.MapFrom(s => s.Company != null ?  s.Company.Name : string.Empty));
+
+        CreateMap<UpdateInterviewRoundDto, InterviewRound>();
+        CreateMap<CreateInterviewRoundDto, InterviewRound>();
     }
 }
