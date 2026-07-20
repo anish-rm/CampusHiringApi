@@ -228,13 +228,15 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         return lastRound ?? 0;
     }
 
-    public async Task<List<string>> GetAssessmentClearedStudentIds(List<string> studentsIds, int previousRound)
+    public async Task<List<string>> GetAssessmentClearedStudentIds(List<string> studentsIds, int previousRound, int companyId)
     {
         var clearedStudentsIds = previousRound > 0 ? await context.Assessments
             .Where(a => studentsIds.Contains(a.StudentUserId)
+                        && a.CompanyId == companyId
                         && a.Round == previousRound
                         && a.Result == "Pass")
             .Select(a => a.StudentUserId)
+            .Distinct()
             .ToListAsync() : studentsIds;
 
         return clearedStudentsIds;
@@ -272,7 +274,7 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
 
 
         int previousRound = filter.Round - 1;
-        var clearedStudentsIds = await GetAssessmentClearedStudentIds(studentsIds, previousRound);
+        var clearedStudentsIds = await GetAssessmentClearedStudentIds(studentsIds, previousRound, assessmentType.CompanyId);
 
         if (clearedStudentsIds.Count == 0)
         {
