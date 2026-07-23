@@ -79,6 +79,16 @@ public class StudentMappingProfile : Profile
     }
 }
 
+public class InterviewerMappingProfile : Profile
+{
+    public InterviewerMappingProfile()
+    {
+        CreateMap<Interviewer, GetInterviewerDto>()
+            .ForMember(d => d.UserName, cfg => cfg.MapFrom(s => s.User != null ? s.User.UserName : string.Empty))
+            .ForMember(d => d.CompanyName, cfg => cfg.MapFrom(s => s.Company != null ? s.Company.Name: string.Empty));
+    }
+}
+
 public class InterviewMappingProfile : Profile
 {
     public InterviewMappingProfile()
@@ -88,5 +98,11 @@ public class InterviewMappingProfile : Profile
 
         CreateMap<UpdateInterviewRoundDto, InterviewRound>();
         CreateMap<CreateInterviewRoundDto, InterviewRound>();
+
+        CreateMap<InterviewerAvailability, GetInterviewerAvailabilityDto>()
+            .ForMember(d => d.CompanyName, cfg => cfg.MapFrom(s => s.Company != null ? s.Company.Name : string.Empty))
+            .ForMember(d => d.InterviewerName, cfg => cfg.MapFrom(s => s.Interviewer != null ? s.Interviewer.User!.UserName : string.Empty));
+        CreateMap<CreateInterviewerAvailabilityDto, InterviewerAvailability>();
+
     }
 }

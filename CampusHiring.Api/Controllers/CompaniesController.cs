@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CampusHiring.Api.Application.Contracts;
+using CampusHiring.Api.Application.DTOs.Company;
+using CampusHiring.Api.Application.DTOs.Interview;
+using CampusHiring.Api.Common.Constants;
+using CampusHiring.Api.Common.Results;
+using CampusHiring.Api.Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CampusHiring.Api.Domain;
-using CampusHiring.Api.Application.Contracts;
-using CampusHiring.Api.Application.DTOs.Company;
-using CampusHiring.Api.Common.Results;
-using Microsoft.AspNetCore.Authorization;
-using CampusHiring.Api.Common.Constants;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CampusHiring.Api.Controllers
 {
@@ -32,6 +33,13 @@ namespace CampusHiring.Api.Controllers
         public async Task<ActionResult<GetCompanyDto>> GetCompany(int id)
         {
             var result = await companiesService.GetCompanyAsync(id);
+            return ToActionResult(result);
+        }
+
+        [HttpGet("{id}/interviewers")]
+        public async Task<ActionResult<IEnumerable<GetInterviewerDto>>> GetCompanyInterviewers(int id)
+        {
+            var result = await companiesService.GetInterviewersAsync(id);
             return ToActionResult(result);
         }
 

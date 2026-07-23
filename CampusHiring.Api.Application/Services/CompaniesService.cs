@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.Company;
+using CampusHiring.Api.Application.DTOs.Interview;
 using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;
@@ -87,5 +88,16 @@ public class CompaniesService(CampusHiringDbContext dbContext, IMapper mapper) :
         dbContext.Companies.Remove(company);
         await dbContext.SaveChangesAsync();
         return Result.Success();
+    }
+
+    public async Task<Result<IEnumerable<GetInterviewerDto>>> GetInterviewersAsync(int companyId)
+    {
+        var interviewers = await dbContext.Interviewers
+            .Where(i => i.CompanyId == companyId)
+            .AsNoTracking()
+            .ProjectTo<GetInterviewerDto>(mapper.ConfigurationProvider)
+            .ToListAsync();
+
+        return Result<IEnumerable<GetInterviewerDto>>.Success(interviewers);
     }
 }

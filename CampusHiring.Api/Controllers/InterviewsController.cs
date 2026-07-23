@@ -1,101 +1,110 @@
-﻿using CampusHiring.Api.Domain;
+﻿using CampusHiring.Api.Application.Contracts;
+using CampusHiring.Api.Application.DTOs.Interview;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CampusHiring.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class InterviewsController : ControllerBase
+public class InterviewsController(IInterviewsService interviewsService) : BaseApiController
 {
-    private readonly CampusHiringDbContext _context;
-
-    public InterviewsController(CampusHiringDbContext context)
-    {
-        _context = context;
-    }
 
     // GET: api/Interviews
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Interview>>> GetInterviews()
+    public async Task<ActionResult<IEnumerable<GetInterviewDto>>> GetInterviews()
     {
-        return await _context.Interviews.ToListAsync();
+        var result = await interviewsService.GetInterviewsAsync();
+
+        return ToActionResult(result);
     }
 
     // GET: api/Interviews/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Interview>> GetInterview(int id)
+    public async Task<ActionResult<GetInterviewDto>> GetInterview(int id)
     {
-        var interview = await _context.Interviews.FindAsync(id);
+        var result = await interviewsService.GetInterviewAsync(id);
 
-        if (interview == null)
-        {
-            return NotFound();
-        }
-
-        return interview;
+        return ToActionResult(result);
     }
 
-    // PUT: api/Interviews/5
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutInterview(int id, Interview interview)
+    [HttpGet("rounds")]
+    public async Task<ActionResult<IEnumerable<GetInterviewRoundDto>>> GetInterviewRounds()
     {
-        if (id != interview.Id)
-        {
-            return BadRequest();
-        }
+        var result = await interviewsService.GetInterviewRoundsAsync();
 
-        _context.Entry(interview).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!InterviewExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        return NoContent();
+        return ToActionResult(result);
     }
 
-    // POST: api/Interviews
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-    [HttpPost]
-    public async Task<ActionResult<Interview>> PostInterview(Interview interview)
+    [HttpGet("rounds/{id}")]
+    public async Task<ActionResult<GetInterviewRoundDto>> GetInterviewRound(int id)
     {
-        _context.Interviews.Add(interview);
-        await _context.SaveChangesAsync();
+        var result = await interviewsService.GetInterviewRoundAsync(id);
 
-        return CreatedAtAction("GetInterview", new { id = interview.Id }, interview);
+        return ToActionResult(result);
     }
 
-    // DELETE: api/Interviews/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteInterview(int id)
+    [HttpGet("rounds/company/{companyId}")]
+    public async Task<ActionResult<IEnumerable<GetInterviewRoundDto>>> GetInterviewRounds(int companyId)
     {
-        var interview = await _context.Interviews.FindAsync(id);
-        if (interview == null)
+        var result = await interviewsService.GetCompanyInterviewRoundsAsync(companyId);
+
+        return ToActionResult(result);
+    }
+
+
+    [HttpPut("rounds/{id}")]
+    public async Task<IActionResult> PutInterviewRound(int id, UpdateInterviewRoundDto roundDto)
+    {
+        var result = await interviewsService.UpdateInterviewRoundAsync(id, roundDto);
+
+        return ToActionResult(result);
+    }
+
+    [HttpPost("rounds")]
+    public async Task<ActionResult<GetInterviewRoundDto>> PostInterviewRound(CreateInterviewRoundDto roundDto)
+    {
+        var result = await interviewsService.CreateInterviewRoundAsync(roundDto);
+
+        if(!result.IsSuccess)
         {
-            return NotFound();
+            return MapToErrors(result.Errors);
         }
-
-        _context.Interviews.Remove(interview);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        return CreatedAtAction("GetInterviewRound", new { id = result.Value!.Id }, result.Value);
     }
 
-    private bool InterviewExists(int id)
+    [HttpDelete("rounds/{id}")]
+    public async Task<IActionResult> DeleteInterviewRound(int id)
     {
-        return _context.Interviews.Any(e => e.Id == id);
+        var result = await interviewsService.DeleteInterviewRoundAsync(id);
+        return ToActionResult(result);
     }
+
+    [HttpGet("availabilities")]
+    public async Task<ActionResult<IEnumerable<GetInterviewerAvailabilityDto>>> GetInterviewAvailabilities()
+    {
+        var result = await interviewsService.GetInterviewersAvailabilityAsync();
+
+        return ToActionResult(result);
+    }
+
+    [HttpPost("availabilities")]
+    public async Task<ActionResult<GetInterviewerAvailabilityDto>> PostInterviewAvailability(CreateInterviewerAvailabilityDto interviewerAvailabilityDto)
+    {
+        var result = await interviewsService.CreateInterviewerAvailabilityAsync(interviewerAvailabilityDto);
+
+        if (!result.IsSuccess)
+        {
+            return MapToErrors(result.Errors);
+        }
+        return CreatedAtAction("GetInterviewRound", new { id = result.Value!.Id }, result.Value);
+    }
+
+    [HttpPost("schedule")]
+    public async Task<ActionResult<GetInterviewerAvailabilityDto>> PostInterviewAvailability(int companyId, int collegeId, DateTime interviewDate, int duration = 60, int roundNumber = 1)
+    {
+        var result = await interviewsService.ScheduleInterviews(companyId, collegeId, interviewDate, duration, roundNumber);
+
+        return ToActionResult(result);
+    }
+
 }

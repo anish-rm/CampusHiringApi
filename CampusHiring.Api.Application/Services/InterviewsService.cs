@@ -113,6 +113,67 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
 
     }
 
+    public async Task<Result<IEnumerable<GetInterviewerAvailabilityDto>>> GetInterviewersAvailabilityAsync()
+    {
+        var availabilities = await context.InterviewerAvailabilities
+            .AsNoTracking()
+            .ProjectTo<GetInterviewerAvailabilityDto>(mapper.ConfigurationProvider)
+            .ToListAsync();
+
+        return Result<IEnumerable<GetInterviewerAvailabilityDto>>.Success(availabilities);
+    }
+
+    public async Task<Result<GetInterviewerAvailabilityDto>> CreateInterviewerAvailabilityAsync(CreateInterviewerAvailabilityDto interviewerAvailabilityDto)
+    {
+        var company = await context.Companies.FindAsync(interviewerAvailabilityDto.CompanyId);
+        if(company  == null)
+        {
+            return Result<GetInterviewerAvailabilityDto>.NotFound(new Error(ErrorCodes.NotFound, $"Company with id {interviewerAvailabilityDto.CompanyId} is not found"));
+        }
+
+        var interviewers = await context.Interviewers.FindAsync(interviewerAvailabilityDto.InterviewerUserId);
+        if (interviewers == null)
+        {
+            return Result<GetInterviewerAvailabilityDto>.NotFound(new Error(ErrorCodes.NotFound, $"Interviewer with id {interviewerAvailabilityDto.InterviewerUserId} is not found"));
+        }
+
+        var interviewerAvailability = mapper.Map<InterviewerAvailability>(interviewerAvailabilityDto);
+        context.InterviewerAvailabilities.Add(interviewerAvailability);
+        await context.SaveChangesAsync();
+
+        var result = mapper.Map<GetInterviewerAvailabilityDto>(interviewerAvailability);
+        return Result<GetInterviewerAvailabilityDto>.Success(result);
+    }
+
+
+    public async Task<Result<IEnumerable<GetInterviewDto>>> GetInterviewsAsync()
+    {
+        var interviews = await context.Interviews
+            .AsNoTracking()
+            .ProjectTo<GetInterviewDto>(mapper.ConfigurationProvider)
+            .ToListAsync();
+
+        return Result<IEnumerable<GetInterviewDto>>.Success(interviews);
+    }
+
+    public async Task<Result<GetInterviewDto>> GetInterviewAsync(int id)
+    {
+        var interview = await context.Interviews
+            .AsNoTracking()
+            .Where(ir => ir.Id == id)
+            .ProjectTo<GetInterviewDto>(mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
+
+        if (interview == null)
+        {
+            return Result<GetInterviewDto>.NotFound(new Error(ErrorCodes.NotFound, $"Interview with id {id} is not found"));
+        }
+
+        return Result<GetInterviewDto>.Success(interview);
+
+    }
+
+
     public async Task<Result> ScheduleInterviews(int companyId, int collegeId, DateTime interviewDate, int duration = 60, int roundNumber = 1)
     {
         var company = await context.Companies.FindAsync(companyId);
