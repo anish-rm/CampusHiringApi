@@ -99,20 +99,27 @@ public class InterviewMappingProfile : Profile
             .ForMember(d => d.CompanyName , cfg => cfg.MapFrom(s => s.Company != null ?  s.Company.Name : string.Empty));
 
         CreateMap<UpdateInterviewRoundDto, InterviewRound>();
+
         CreateMap<CreateInterviewRoundDto, InterviewRound>();
+        
         CreateMap<InterviewRound, GetInterviewRoundDto>();
+        
         CreateMap<Interview, GetInterviewDto>()
             .ForMember(d => d.StudentName, cfg => cfg.MapFrom(s => s.Student != null ? s.Student.User!.UserName : string.Empty))
             .ForMember(d => d.CompanyName, cfg => cfg.MapFrom(s => s.Company != null ? s.Company.Name : string.Empty))
             .ForMember(d => d.InterviewerName, cfg => cfg.MapFrom(s => s.Interviewer != null ? s.Interviewer.User!.UserName : string.Empty))
             .ForMember(d => d.RoundNumber, cfg => cfg.MapFrom(s => s.InterviewRound != null ? s.InterviewRound.RoundNumber : 0));
 
-
-
         CreateMap<InterviewerAvailability, GetInterviewerAvailabilityDto>()
             .ForMember(d => d.CompanyName, cfg => cfg.MapFrom(s => s.Company != null ? s.Company.Name : string.Empty))
             .ForMember(d => d.InterviewerName, cfg => cfg.MapFrom(s => s.Interviewer != null ? s.Interviewer.User!.UserName : string.Empty));
+
+        CreateMap<UpdateInterviewDto, Interview>();
+        
         CreateMap<CreateInterviewerAvailabilityDto, InterviewerAvailability>();
 
+        CreateMap<CandidateSelection, GetCandidateSelectionDto>()
+            .ForMember(d => d.StudentName, cfg => cfg.MapFrom(s => s.Student != null ? s.Student.User!.UserName : string.Empty))
+            .ForMember(d => d.CompanyName, cfg => cfg.MapFrom(s => s.Company != null ? s.Company.Name : string.Empty));
     }
 }

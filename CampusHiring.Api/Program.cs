@@ -34,7 +34,7 @@ if (string.IsNullOrEmpty(jwtSettings.Key))
     throw new InvalidOperationException("JWT settings are not properly configured. Please configure key to continue");
 }
 
-
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

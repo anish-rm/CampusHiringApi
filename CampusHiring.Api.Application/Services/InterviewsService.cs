@@ -5,12 +5,16 @@ using CampusHiring.Api.Application.DTOs.Interview;
 using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 
 namespace CampusHiring.Api.Application.Services;
 
-public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IAssessmentsService assessmentsService) : IInterviewsService
+public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusHiringDbContext context, IMapper mapper, IAssessmentsService assessmentsService) : IInterviewsService
 {
     public async Task<Result<IEnumerable<GetInterviewRoundDto>>> GetInterviewRoundsAsync()
     {
@@ -57,7 +61,7 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
 
     }
 
-    public async Task<Result> UpdateInterviewRoundAsync(int id, UpdateInterviewRoundDto roundDto)
+    public async Task<Result> UpdateInterviewRoundAsync(int id, int companyId, UpdateInterviewRoundDto roundDto)
     {
         if (id != roundDto.Id)
         {
@@ -70,7 +74,7 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
             return Result.NotFound(new Error(ErrorCodes.NotFound, $"Interview rounds with id {id} is not found"));
         }
 
-        var company = await context.Companies.FindAsync(roundDto.CompanyId);
+        var company = await context.Companies.FindAsync(companyId);
         if (company == null)
         {
             return Result.NotFound(new Error(ErrorCodes.NotFound, $"Company with id {roundDto.CompanyId} is not found"));
@@ -80,12 +84,11 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
         round.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
         return Result.Success();
-
     }
 
-    public async Task<Result<GetInterviewRoundDto>> CreateInterviewRoundAsync(CreateInterviewRoundDto roundDto)
+    public async Task<Result<GetInterviewRoundDto>> CreateInterviewRoundAsync(int companyId, CreateInterviewRoundDto roundDto)
     {
-        var company = await context.Companies.FindAsync(roundDto.CompanyId);
+        var company = await context.Companies.FindAsync(companyId);
         if (company == null)
         {
             return Result<GetInterviewRoundDto>.NotFound(new Error(ErrorCodes.NotFound, $"Company with id {roundDto.CompanyId} is not found"));
@@ -123,12 +126,12 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
         return Result<IEnumerable<GetInterviewerAvailabilityDto>>.Success(availabilities);
     }
 
-    public async Task<Result<GetInterviewerAvailabilityDto>> CreateInterviewerAvailabilityAsync(CreateInterviewerAvailabilityDto interviewerAvailabilityDto)
+    public async Task<Result<GetInterviewerAvailabilityDto>> CreateInterviewerAvailabilityAsync(int companyId, CreateInterviewerAvailabilityDto interviewerAvailabilityDto)
     {
-        var company = await context.Companies.FindAsync(interviewerAvailabilityDto.CompanyId);
+        var company = await context.Companies.FindAsync(companyId);
         if(company  == null)
         {
-            return Result<GetInterviewerAvailabilityDto>.NotFound(new Error(ErrorCodes.NotFound, $"Company with id {interviewerAvailabilityDto.CompanyId} is not found"));
+            return Result<GetInterviewerAvailabilityDto>.NotFound(new Error(ErrorCodes.NotFound, $"Company with id {companyId} is not found"));
         }
 
         var interviewers = await context.Interviewers.FindAsync(interviewerAvailabilityDto.InterviewerUserId);
@@ -161,6 +164,26 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
         return Result<IEnumerable<GetInterviewDto>>.Success(interviews);
     }
 
+    public async Task<Result<IEnumerable<GetInterviewDto>>> GetCollegeInterviewsAsync(int collegeId)
+    {
+        var interviews = await context.Interviews
+            .Where(i => i.Student!.CollegeId == collegeId)
+            .AsNoTracking()
+            .ProjectTo<GetInterviewDto>(mapper.ConfigurationProvider)
+            .ToListAsync();
+
+        if(interviews == null)
+        {
+            var college = await context.Colleges.FindAsync(collegeId);
+            if (college == null)
+            {
+                return Result<IEnumerable<GetInterviewDto>>.NotFound(new Error(ErrorCodes.NotFound, $"College with id {collegeId} not found"));
+            }
+        }
+
+        return Result<IEnumerable<GetInterviewDto>>.Success(interviews);
+    }
+
     public async Task<Result<GetInterviewDto>> GetInterviewAsync(int id)
     {
         var interview = await context.Interviews
@@ -176,6 +199,89 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
 
         return Result<GetInterviewDto>.Success(interview);
 
+    }
+
+    public async Task<Result> SubmitFeedbackAsync(int id, int companyId, JsonPatchDocument<PatchInterviewDto> patchDoc)
+    {
+        var interview = await context.Interviews.FindAsync(id);
+        if (interview == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Interview with id {id} is not found"));
+        }
+        if(interview.CompanyId != companyId)
+        {
+            return Result.BadRequest(new Error(ErrorCodes.BadRequest, $"Company id {companyId} does not match with Interview"));
+        }
+
+        var httpUser = httpContextAccessor.HttpContext?.User;
+        var userId = httpUser?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? httpUser?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (interview.InterviewerUserId != userId)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Interviewer with id {userId} is not assigned for this interview"));
+        }
+
+        var interviewDto = mapper.Map<PatchInterviewDto>(interview);
+        patchDoc.ApplyTo(interviewDto);
+
+        mapper.Map(interviewDto, interview);
+        await context.SaveChangesAsync();
+
+        return Result.Success();
+
+    }
+
+    public async Task<Result> UpdateInterviewAsync(int id, UpdateInterviewDto interviewDto)
+    {
+        if (id != interviewDto.Id)
+        {
+            return Result.BadRequest(new Error(ErrorCodes.BadRequest, $"Id {id} does not match with id {interviewDto.Id} passed in body"));
+        }
+        var interview = await context.Interviews.FindAsync(id);
+
+        if (interview == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Interview with id {id} is not found"));
+        }
+
+        var interviewer = await context.Interviewers.FindAsync(interviewDto.InterviewerUserId);
+        if (interviewer == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Interviewer with id {interviewDto.InterviewerUserId} is not found"));
+        }
+
+        mapper.Map(interviewDto, interview);
+        interview.UpdatedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+        return Result.Success();
+    }
+
+    public async Task<Result> UpdateCompanyInterviewAsync(int id, int companyId, UpdateInterviewDto interviewDto)
+    {
+        if (id != interviewDto.Id)
+        {
+            return Result.BadRequest(new Error(ErrorCodes.BadRequest, $"Id {id} does not match with id {interviewDto.Id} passed in body"));
+        }
+        var interview = await context.Interviews.FindAsync(id);
+
+        if (interview == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Interview with id {id} is not found"));
+        }
+
+
+        var httpUser = httpContextAccessor.HttpContext.User;
+        var userId = httpUser.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? httpUser.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (interview.InterviewerUserId != userId)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Interviewer with id {userId} is not assigned for this interview"));
+        }
+
+        mapper.Map(interviewDto, interview);
+        interview.UpdatedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+        return Result.Success();
     }
 
     public async Task<Result> ScheduleInterviews(int companyId, int collegeId, int batch, DateTime interviewDate, int duration = 60, int roundNumber = 1)
@@ -242,6 +348,36 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
         context.CandidateSelections.AddRange(candidateSelections);
         await context.SaveChangesAsync();
         return Result.Success();
+    }
+
+    public async Task<Result<IEnumerable<GetCandidateSelectionDto>>> GetCandidateSelectionsAsync()
+    {
+        var selections = await context.CandidateSelections
+            .AsNoTracking()
+            .ProjectTo<GetCandidateSelectionDto>(mapper.ConfigurationProvider)
+            .ToListAsync();
+
+        return Result<IEnumerable<GetCandidateSelectionDto>>.Success(selections);
+    }
+
+    public async Task<Result<IEnumerable<GetCandidateSelectionDto>>> GetCollegeCandidateSelectionsAsync(int collegeId)
+    {
+        var selections = await context.CandidateSelections
+            .Where(cs => cs.Student!.CollegeId == collegeId)
+            .AsNoTracking()
+            .ProjectTo<GetCandidateSelectionDto>(mapper.ConfigurationProvider)
+            .ToListAsync();
+
+        if (selections == null)
+        {
+            var college = await context.Colleges.FindAsync(collegeId);
+            if (college == null)
+            {
+                return Result<IEnumerable<GetCandidateSelectionDto>>.NotFound(new Error(ErrorCodes.NotFound, $"College with id {collegeId} not found"));
+            }
+        }
+
+        return Result<IEnumerable<GetCandidateSelectionDto>>.Success(selections);
     }
 
     private async Task<List<InterviewerAvailability>> GetAvailableInterviewers(int companyId, DateTime interviewDate, int need)
