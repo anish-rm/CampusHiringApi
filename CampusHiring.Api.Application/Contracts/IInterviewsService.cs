@@ -14,7 +14,7 @@ namespace CampusHiring.Api.Application.Contracts
         Task<Result<GetInterviewRoundDto>> GetInterviewRoundAsync(int id);
         Task<Result<IEnumerable<GetInterviewRoundDto>>> GetInterviewRoundsAsync();
         Task<Result<IEnumerable<GetInterviewDto>>> GetInterviewsAsync();
-        Task<Result> ScheduleInterviews(int companyId, int collegeId, DateTime interviewDate, int duration = 60, int roundNumber = 1);
+        Task<Result> ScheduleInterviews(int companyId, int collegeId, int batch, DateTime interviewDate,  int duration = 60, int roundNumber = 1);
         Task<Result> UpdateInterviewRoundAsync(int id, UpdateInterviewRoundDto roundDto);
     }
 }

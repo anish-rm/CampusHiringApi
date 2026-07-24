@@ -94,7 +94,7 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
         var round = mapper.Map<InterviewRound>(roundDto);
         context.InterviewRounds.Add(round);
         await context.SaveChangesAsync();
-        var result = mapper.Map<GetInterviewRoundDto>(roundDto);
+        var result = mapper.Map<GetInterviewRoundDto>(round);
         return Result<GetInterviewRoundDto>.Success(result);
 
     }
@@ -141,8 +141,13 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
         context.InterviewerAvailabilities.Add(interviewerAvailability);
         await context.SaveChangesAsync();
 
-        var result = mapper.Map<GetInterviewerAvailabilityDto>(interviewerAvailability);
-        return Result<GetInterviewerAvailabilityDto>.Success(result);
+        var result = await context.InterviewerAvailabilities
+            .Where(ia => ia.Id == interviewerAvailability.Id)
+            .ProjectTo<GetInterviewerAvailabilityDto>(mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
+
+
+        return Result<GetInterviewerAvailabilityDto>.Success(result!);
     }
 
 
@@ -173,8 +178,7 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
 
     }
 
-
-    public async Task<Result> ScheduleInterviews(int companyId, int collegeId, DateTime interviewDate, int duration = 60, int roundNumber = 1)
+    public async Task<Result> ScheduleInterviews(int companyId, int collegeId, int batch, DateTime interviewDate, int duration = 60, int roundNumber = 1)
     {
         var company = await context.Companies.FindAsync(companyId);
         if (company == null)
@@ -194,13 +198,14 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
             return Result.NotFound(new Error(ErrorCodes.NotFound, $"Round {roundNumber} for company {companyId} is not found"));
         }
 
-        var studentIds = await FilterStudents(collegeId, companyId, roundNumber);
+        var studentIds = await FilterStudents(collegeId, companyId, batch, roundNumber);
 
         if (studentIds == null || studentIds.Count == 0)
         {
             return Result.NotFound(new Error(ErrorCodes.NotFound, $"No Students from give college {college.Name} is eligible for interviews"));
         }
         var interviews = new List<Interview>();
+        var candidateSelections = new List<CandidateSelection>();
         var interviewers = await GetAvailableInterviewers(companyId, interviewDate, studentIds.Count);
         if (interviewers == null || interviewers.Count == 0)
             return Result.NotFound(new Error(ErrorCodes.NotFound, "No interviewers available for the requested date"));
@@ -219,6 +224,12 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
                 ScheduledStartTime = slot.StartTime,
                 ScheduledEndTime = slot.EndTime,
             });
+
+            candidateSelections.Add(new CandidateSelection
+            {
+                StudentUserId = studentIds[assign],
+                CompanyId = companyId,
+            });
         }
 
 
@@ -228,6 +239,7 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
         }
 
         context.Interviews.AddRange(interviews);
+        context.CandidateSelections.AddRange(candidateSelections);
         await context.SaveChangesAsync();
         return Result.Success();
     }
@@ -246,7 +258,7 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
             @"SELECT TOP({0}) *
           FROM InterviewerAvailabilities WITH (UPDLOCK, READPAST)
           WHERE CompanyId = {1} AND StartTime >= {2} AND EndTime < {3} AND IsAvailable = 1
-          ORDER BY Id",
+          ORDER BY StartTime, Id",
             need, companyId, slotStart, slotEnd);
 
         var interviewers = await context.InterviewerAvailabilities
@@ -283,6 +295,7 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
         return round;
     }
 
+
     private async Task<List<string>> GetInterviewClearedStudentIds(List<string> studentIds, int companyId, int round)
     {
         var result = await context.Interviews
@@ -297,11 +310,11 @@ public class InterviewsService(CampusHiringDbContext context, IMapper mapper, IA
         return result;
     }
 
-    private async Task<List<string>> FilterStudents(int collegeId, int companyId, int roundNumber = 1)
+    private async Task<List<string>> FilterStudents(int collegeId, int companyId, int batch, int roundNumber = 1)
     {
 
         var studentIds = await context.Students
-            .Where(s => s.CollegeId == collegeId)
+            .Where(s => s.CollegeId == collegeId && s.Batch == batch)
             .Select(s => s.UserId)
             .ToListAsync();
 

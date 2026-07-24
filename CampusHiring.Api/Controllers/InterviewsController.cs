@@ -100,9 +100,9 @@ public class InterviewsController(IInterviewsService interviewsService) : BaseAp
     }
 
     [HttpPost("schedule")]
-    public async Task<ActionResult<GetInterviewerAvailabilityDto>> PostInterviewAvailability(int companyId, int collegeId, DateTime interviewDate, int duration = 60, int roundNumber = 1)
+    public async Task<ActionResult<GetInterviewerAvailabilityDto>> PostInterviewAvailability([FromQuery]int companyId, [FromQuery] int collegeId, [FromQuery] int batch, [FromQuery] DateTime interviewDate, [FromQuery] int duration = 60, [FromQuery] int roundNumber = 1)
     {
-        var result = await interviewsService.ScheduleInterviews(companyId, collegeId, interviewDate, duration, roundNumber);
+        var result = await interviewsService.ScheduleInterviews(companyId, collegeId, batch, interviewDate, duration, roundNumber);
 
         return ToActionResult(result);
     }

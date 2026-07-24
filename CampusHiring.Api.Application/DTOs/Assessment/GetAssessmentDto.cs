@@ -7,6 +7,7 @@ public class GetAssessmentDto
     public int Id { get; set; }
     public string StudentName { get; set; } = string.Empty;
     public string StudentId { get; set; } = string.Empty;
+    public int Batch {  get; set; }
     public int CompanyId { get; set; }
     public int AssessmentTypeId { get; set; }
     public int Cgpa { get; set; }

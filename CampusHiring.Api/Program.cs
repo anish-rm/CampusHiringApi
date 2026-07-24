@@ -62,6 +62,7 @@ builder.Services.AddScoped<IAssessmentsService, AssessmentsService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<ICollegesService, CollegesService>();
 builder.Services.AddScoped<ICompaniesService, CompaniesService>();
+builder.Services.AddScoped<IInterviewsService, InterviewsService>();
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(AssessmentMappingProfile).Assembly);
 
