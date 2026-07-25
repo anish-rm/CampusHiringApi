@@ -4,7 +4,9 @@ using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Common.Enums;
+using CampusHiring.Api.Common.Models.Extensions;
 using CampusHiring.Api.Common.Models.Filtering;
+using CampusHiring.Api.Common.Models.Paging;
 using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -14,13 +16,14 @@ namespace CampusHiring.Api.Application.Services;
 
 public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) : IAssessmentsService
 {
-    public async Task<Result<IEnumerable<GetAssessmentsDto>>> GetAssessmentsAsync()
+    public async Task<Result<PagedResult<GetAssessmentsDto>>> GetAssessmentsAsync(PaginationParameter paginationParameter)
     {
         var assessments = await context.Assessments
             .AsNoTracking()
             .ProjectTo<GetAssessmentsDto>(mapper.ConfigurationProvider)
-            .ToListAsync();
-        return Result<IEnumerable<GetAssessmentsDto>>.Success(assessments);
+            .ToPagedResultAsync(paginationParameter);
+
+        return Result<PagedResult<GetAssessmentsDto>>.Success(assessments);
     }
 
     public async Task<Result<GetAssessmentDto?>> GetAssessmentAsync(int id)

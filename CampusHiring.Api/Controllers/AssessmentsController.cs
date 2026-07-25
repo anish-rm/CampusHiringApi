@@ -3,6 +3,7 @@ using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.AuthorizationFilter;
 using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Common.Models.Filtering;
+using CampusHiring.Api.Common.Models.Paging;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,9 +19,9 @@ namespace CampusHiring.Api.Controllers
         // GET: api/Assessments
         [HttpGet]
         [Authorize(Roles = RoleNames.Admin)]
-        public async Task<ActionResult<IEnumerable<GetAssessmentsDto>>> GetAssessments()
+        public async Task<ActionResult<PagedResult<GetAssessmentsDto>>> GetAssessments([FromQuery]PaginationParameter paginationParameter)
         {
-            var assessments = await assessmentsService.GetAssessmentsAsync();
+            var assessments = await assessmentsService.GetAssessmentsAsync(paginationParameter);
             return ToActionResult(assessments);
         }
 

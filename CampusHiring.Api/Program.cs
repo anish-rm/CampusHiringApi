@@ -67,6 +67,7 @@ builder.Services.AddScoped<IInterviewsService, InterviewsService>();
 builder.Services.AddAutoMapper(cfg => { }, typeof(AssessmentMappingProfile).Assembly);
 
 builder.Services.AddControllers()
+    .AddNewtonsoftJson()
     .AddJsonOptions(opt =>
     {
         opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());

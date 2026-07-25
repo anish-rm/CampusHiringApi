@@ -115,7 +115,9 @@ public class InterviewMappingProfile : Profile
             .ForMember(d => d.InterviewerName, cfg => cfg.MapFrom(s => s.Interviewer != null ? s.Interviewer.User!.UserName : string.Empty));
 
         CreateMap<UpdateInterviewDto, Interview>();
-        
+        CreateMap<Interview, PatchInterviewDto>()
+            .ReverseMap();
+
         CreateMap<CreateInterviewerAvailabilityDto, InterviewerAvailability>();
 
         CreateMap<CandidateSelection, GetCandidateSelectionDto>()

@@ -53,7 +53,7 @@ public class InterviewsController(IInterviewsService interviewsService) : BaseAp
 
     [HttpPatch("{id}/company/{companyId}")]
     [InterviewerOrSystemAdmin]
-    public async Task<IActionResult> SubmitFeedback(int id, int companyId, JsonPatchDocument<PatchInterviewDto> patchDoc)
+    public async Task<IActionResult> SubmitFeedback(int id, int companyId, [FromBody] JsonPatchDocument<PatchInterviewDto> patchDoc)
     {
         if(patchDoc == null)
         {

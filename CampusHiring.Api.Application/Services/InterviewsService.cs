@@ -215,8 +215,9 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
 
         var httpUser = httpContextAccessor.HttpContext?.User;
         var userId = httpUser?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? httpUser?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var adminRole = httpUser?.IsInRole(RoleNames.Admin);
 
-        if (interview.InterviewerUserId != userId)
+        if (adminRole == false && interview.InterviewerUserId != userId)
         {
             return Result.NotFound(new Error(ErrorCodes.NotFound, $"Interviewer with id {userId} is not assigned for this interview"));
         }

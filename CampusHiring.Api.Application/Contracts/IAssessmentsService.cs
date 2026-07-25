@@ -1,13 +1,14 @@
 ﻿using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Common.Enums;
 using CampusHiring.Api.Common.Models.Filtering;
+using CampusHiring.Api.Common.Models.Paging;
 using CampusHiring.Api.Common.Results;
 
 namespace CampusHiring.Api.Application.Contracts
 {
     public interface IAssessmentsService
     {
-        Task<Result<IEnumerable<GetAssessmentsDto>>> GetAssessmentsAsync();
+        Task<Result<PagedResult<GetAssessmentsDto>>> GetAssessmentsAsync(PaginationParameter paginationParameter);
         Task<bool> AssessmentExists(int id);
         Task<Result<GetAssessmentDto?>> GetAssessmentAsync(int id);
         Task<Result> UpdateAssessmentAsync(int id, UpdateAssessmentDto updateAssessmentDto);

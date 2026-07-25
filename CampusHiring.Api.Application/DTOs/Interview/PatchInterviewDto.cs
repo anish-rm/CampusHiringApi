@@ -2,6 +2,6 @@
 
 public class PatchInterviewDto
 {
-    public string Feedback { get; set; } = string.Empty;
-    public string Recommendation { get; set; } = string.Empty;
+    public required string Feedback { get; set; }
+    public required string Recommendation { get; set; } 
 }
