@@ -42,6 +42,15 @@ public class InterviewsController(IInterviewsService interviewsService) : BaseAp
         return ToActionResult(result);
     }
 
+    [HttpDelete("{id}")]
+    [Authorize(Roles = RoleNames.Admin)]
+    public async Task<IActionResult> DeleteInterview(int id)
+    {
+        var result = await interviewsService.DeleteInterviewAsync(id);
+
+        return ToActionResult(result);
+    }
+
     [HttpPut("{id}/company/{companyId}")]
     [InterviewerOrSystemAdmin]
     public async Task<IActionResult> PutCompanyInterview(int id, int companyId, UpdateInterviewDto interviewDto)
@@ -158,10 +167,39 @@ public class InterviewsController(IInterviewsService interviewsService) : BaseAp
         return ToActionResult(result);
     }
 
+    [HttpPost("candidateStatus/company/{companyId}/student/{studentId}")]
+    public async Task<ActionResult<GetCandidateSelectionDto>> PostCandidateStatus(int companyId, string studentId, [FromBody] CreateCandidateSelectionDto createCandidateSelectionDto)
+    {
+        var result = await interviewsService.CreateCandidateSelectionAsync(companyId, studentId, createCandidateSelectionDto);
+
+        if (!result.IsSuccess)
+        {
+            return MapToErrors(result.Errors);
+        }
+        return CreatedAtAction("GetCandidateStatus", new { id = result.Value!.Id }, result.Value);
+    }
+
+    [HttpPut("candidateStatus/company/{companyId}/student/{studentId}")]
+    [InterviewerOrSystemAdmin]
+    public async Task<IActionResult> PutCandidateStatus(int companyId, string studentId, [FromBody]UpdateCandidateSelectionDto candidateSelectionDto)
+    {
+        var result = await interviewsService.UpdateCandidateSelection(companyId, studentId, candidateSelectionDto);
+
+        return ToActionResult(result);
+    }
+
     [HttpGet("candidateStatus/college/{collegeId}")]
     public async Task<ActionResult<IEnumerable<GetCandidateSelectionDto>>> GetCollegeCandidateStatus(int collegeId)
     {
         var result = await interviewsService.GetCollegeCandidateSelectionsAsync(collegeId);
+
+        return ToActionResult(result);
+    }
+
+    [HttpDelete("candidateStatus/{id}")]
+    public async Task<ActionResult<IEnumerable<GetCandidateSelectionDto>>> DeleteCandidateStatus(int id)
+    {
+        var result = await interviewsService.DeleteCandidateSelectionsAsync(id);
 
         return ToActionResult(result);
     }

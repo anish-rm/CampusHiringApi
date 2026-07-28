@@ -20,7 +20,7 @@ namespace CampusHiring.Api.Application.Contracts
         Task<Result<GetAssessmentTypeDto>> GetAssessmentTypeAsync(int id);
         Task<Result<IEnumerable<GetAssessmentTypeDto>>> GetAssessmentTypesAsync();
         Task<Result> AssignAssessments(int collegeId, AssignAssessmentFilterParameter filter);
-        Task<Result<IEnumerable<GetAssessmentDto>>> GetCollegeAssessmentsAsync(int collegeId, AssessmentFilterParameter filter);
+        Task<Result<PagedResult<GetAssessmentDto>>> GetCollegeAssessmentsAsync(int collegeId, AssessmentFilterParameter filter, PaginationParameter paginationParameter);
         Task<List<string>> GetAssessmentClearedStudentIds(List<string> studentsIds, int previousRound, int companyId);
         Task<int> GetLastAssessmentRoundAsync(List<string> studentIds, int companyId);
     }

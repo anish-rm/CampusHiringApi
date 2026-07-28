@@ -37,9 +37,9 @@ namespace CampusHiring.Api.Controllers
 
         [HttpGet("college/{collegeId}")]
         [CollegeOrSystemAdmin]
-        public async Task<ActionResult<IEnumerable<GetAssessmentDto>>> GetCollegeAssessment(int collegeId, [FromQuery]AssessmentFilterParameter filter)
+        public async Task<ActionResult<PagedResult<GetAssessmentDto>>> GetCollegeAssessment(int collegeId, [FromQuery]AssessmentFilterParameter filter, [FromQuery]PaginationParameter paginationParameter)
         {
-            var assessment = await assessmentsService.GetCollegeAssessmentsAsync(collegeId,filter);
+            var assessment = await assessmentsService.GetCollegeAssessmentsAsync(collegeId,filter,paginationParameter);
 
             return ToActionResult(assessment);
         }

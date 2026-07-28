@@ -3,14 +3,12 @@ using AutoMapper.QueryableExtensions;
 using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.Assessment;
 using CampusHiring.Api.Common.Constants;
-using CampusHiring.Api.Common.Enums;
 using CampusHiring.Api.Common.Models.Extensions;
 using CampusHiring.Api.Common.Models.Filtering;
 using CampusHiring.Api.Common.Models.Paging;
 using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;
 using Microsoft.EntityFrameworkCore;
-using static System.Net.WebRequestMethods;
 
 namespace CampusHiring.Api.Application.Services;
 
@@ -42,7 +40,7 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         return Result<GetAssessmentDto?>.Success(assessment);
     }
 
-    public async Task<Result<IEnumerable<GetAssessmentDto>>> GetCollegeAssessmentsAsync(int collegeId, AssessmentFilterParameter filter)
+    public async Task<Result<PagedResult<GetAssessmentDto>>> GetCollegeAssessmentsAsync(int collegeId, AssessmentFilterParameter filter, PaginationParameter paginationParameter)
     {
         var query = context.Assessments
             .Where(a => a.Student!.CollegeId == collegeId);
@@ -76,18 +74,18 @@ public class AssessmentsService(CampusHiringDbContext context, IMapper mapper) :
         var assessment = await query
             .AsNoTracking()
             .ProjectTo<GetAssessmentDto>(mapper.ConfigurationProvider)
-            .ToListAsync();
+            .ToPagedResultAsync(paginationParameter);
 
-        if (assessment.Count == 0)
+        if (assessment.Data == null)
         {
             var college = await context.Colleges.FindAsync(collegeId);
             if(college == null)
             {
-                return Result<IEnumerable<GetAssessmentDto>>.NotFound(new Error(ErrorCodes.NotFound, $"College with id {collegeId} not found"));
+                return Result<PagedResult<GetAssessmentDto>>.NotFound(new Error(ErrorCodes.NotFound, $"College with id {collegeId} not found"));
             }
         }
 
-        return Result<IEnumerable<GetAssessmentDto>>.Success(assessment);
+        return Result<PagedResult<GetAssessmentDto>>.Success(assessment);
     }
 
     public async Task<Result> UpdateAssessmentAsync(int id, UpdateAssessmentDto updateAssessmentDto)

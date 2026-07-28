@@ -8,6 +8,7 @@ using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.Design;
 using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
@@ -102,6 +103,30 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
 
     }
 
+    public async Task<Result<GetCandidateSelectionDto>> CreateCandidateSelectionAsync(int companyId, string studentId, CreateCandidateSelectionDto candidateSelectionDto)
+    {
+        var student = await context.Students.FindAsync(studentId);
+        if (student == null)
+        {
+            return Result<GetCandidateSelectionDto>.NotFound(new Error(ErrorCodes.NotFound, $"Student with id {studentId} is not found"));
+        }
+
+        var company = await context.Companies.FindAsync(companyId);
+        if (company == null)
+        {
+            return Result<GetCandidateSelectionDto>.NotFound(new Error(ErrorCodes.NotFound, $"company with id {companyId} is not found"));
+        }
+
+        var candidateSelection = mapper.Map<CandidateSelection>(candidateSelectionDto);
+        candidateSelection.StudentUserId = studentId;
+        candidateSelection.CompanyId = companyId;
+        context.CandidateSelections.Add(candidateSelection);
+        await context.SaveChangesAsync();
+        var result = mapper.Map<GetCandidateSelectionDto>(candidateSelection);
+        return Result<GetCandidateSelectionDto>.Success(result);
+
+    }
+
     public async Task<Result> DeleteInterviewRoundAsync(int id)
     {
         var round = await context.InterviewRounds.FindAsync(id);
@@ -111,6 +136,20 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
             return Result.NotFound(new Error(ErrorCodes.NotFound, $"Interview rounds with id {id} is not found"));
         }
         context.InterviewRounds.Remove(round);
+        await context.SaveChangesAsync();
+        return Result.Success();
+
+    }
+
+    public async Task<Result> DeleteInterviewAsync(int id)
+    {
+        var interview = await context.Interviews.FindAsync(id);
+
+        if (interview == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Interview with id {id} is not found"));
+        }
+        context.Interviews.Remove(interview);
         await context.SaveChangesAsync();
         return Result.Success();
 
@@ -309,7 +348,7 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
 
         if (studentIds == null || studentIds.Count == 0)
         {
-            return Result.NotFound(new Error(ErrorCodes.NotFound, $"No Students from give college {college.Name} is eligible for interviews"));
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Students are already assigned or No Students from give college {college.Name} is eligible for interviews"));
         }
         var interviews = new List<Interview>();
         var candidateSelections = new List<CandidateSelection>();
@@ -331,12 +370,14 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
                 ScheduledStartTime = slot.StartTime,
                 ScheduledEndTime = slot.EndTime,
             });
-
-            candidateSelections.Add(new CandidateSelection
+            if(roundNumber == 1)
             {
-                StudentUserId = studentIds[assign],
-                CompanyId = companyId,
-            });
+                candidateSelections.Add(new CandidateSelection
+                {
+                    StudentUserId = studentIds[assign],
+                    CompanyId = companyId,
+                });
+            }
         }
 
 
@@ -346,7 +387,10 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
         }
 
         context.Interviews.AddRange(interviews);
-        context.CandidateSelections.AddRange(candidateSelections);
+        if(roundNumber == 1)
+        {
+            context.CandidateSelections.AddRange(candidateSelections);
+        }
         await context.SaveChangesAsync();
         return Result.Success();
     }
@@ -359,6 +403,19 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
             .ToListAsync();
 
         return Result<IEnumerable<GetCandidateSelectionDto>>.Success(selections);
+    }
+
+    public async Task<Result> DeleteCandidateSelectionsAsync(int id)
+    {
+        var candidate = await context.CandidateSelections.FindAsync(id);
+
+        if (candidate == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Candidate Selection with id {id} is not found"));
+        }
+        context.CandidateSelections.Remove(candidate);
+        await context.SaveChangesAsync();
+        return Result.Success();
     }
 
     public async Task<Result<IEnumerable<GetCandidateSelectionDto>>> GetCollegeCandidateSelectionsAsync(int collegeId)
@@ -379,6 +436,39 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
         }
 
         return Result<IEnumerable<GetCandidateSelectionDto>>.Success(selections);
+    }
+
+    public async Task<Result> UpdateCandidateSelection(int companyId, string studentId, UpdateCandidateSelectionDto updateCandidateSelectionDto)
+    {
+
+        var candidateStatus = await context.CandidateSelections
+            .Where(cs => cs.StudentUserId == studentId
+            && cs.CompanyId == companyId)
+            .FirstOrDefaultAsync();
+
+        if(candidateStatus == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Candidate selection for given student {studentId} in given company {companyId} not found"));
+        }
+
+        var interviewRound = await context.Interviews
+            .Where(a => a.CompanyId == companyId
+            && a.StudentUserId == studentId
+            && string.IsNullOrEmpty(a.Feedback))
+            .FirstOrDefaultAsync();
+
+        if(interviewRound != null)
+        {
+            interviewRound.Feedback = updateCandidateSelectionDto.Feedback;
+            interviewRound.Recommendation = updateCandidateSelectionDto.Recommendation;
+            interviewRound.FeedbackSubmissionDate = DateTime.UtcNow;
+            interviewRound.UpdatedAt = DateTime.UtcNow;
+        }
+
+        mapper.Map(updateCandidateSelectionDto, candidateStatus);
+        candidateStatus.UpdatedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+        return Result.Success();
     }
 
     private async Task<List<InterviewerAvailability>> GetAvailableInterviewers(int companyId, DateTime interviewDate, int need)
@@ -433,17 +523,18 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
     }
 
 
-    private async Task<List<string>> GetInterviewClearedStudentIds(List<string> studentIds, int companyId, int round)
+    private async Task<List<string>> GetInterviewClearedStudentIds(List<string> studentIds, List<string> assignedStudentIds, int companyId, int round)
     {
         var result = await context.Interviews
             .Where(i => i.CompanyId == companyId
             && i.InterviewRound!.RoundNumber == round
+            && !assignedStudentIds.Contains(i.StudentUserId)
             && studentIds.Contains(i.StudentUserId)
             && i.Recommendation == "Pass")
             .Select(i => i.StudentUserId)
             .Distinct()
             .ToListAsync();
-
+         
         return result;
     }
 
@@ -453,6 +544,11 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
         var studentIds = await context.Students
             .Where(s => s.CollegeId == collegeId && s.Batch == batch)
             .Select(s => s.UserId)
+            .ToListAsync();
+
+        var assignedStudentIds = await context.Interviews
+            .Where(i => i.InterviewRound!.RoundNumber == roundNumber && studentIds.Contains(i.StudentUserId))
+            .Select(s => s.StudentUserId)
             .ToListAsync();
 
         if (studentIds.Count == 0)
@@ -469,7 +565,7 @@ public class InterviewsService(IHttpContextAccessor httpContextAccessor, CampusH
         }
         else
         {
-            clearedStudentIds = await GetInterviewClearedStudentIds(studentIds, companyId, previousRound);
+            clearedStudentIds = await GetInterviewClearedStudentIds(studentIds, assignedStudentIds, companyId, previousRound);
         }
         return clearedStudentIds;
     }

@@ -6,8 +6,11 @@ namespace CampusHiring.Api.Application.Contracts
 {
     public interface IInterviewsService
     {
+        Task<Result<GetCandidateSelectionDto>> CreateCandidateSelectionAsync(int companyId, string studentId, CreateCandidateSelectionDto candidateSelectionDto);
         Task<Result<GetInterviewerAvailabilityDto>> CreateInterviewerAvailabilityAsync(int companyId, CreateInterviewerAvailabilityDto interviewerAvailabilityDto);
         Task<Result<GetInterviewRoundDto>> CreateInterviewRoundAsync(int companyId, CreateInterviewRoundDto roundDto);
+        Task<Result> DeleteCandidateSelectionsAsync(int id);
+        Task<Result> DeleteInterviewAsync(int id);
         Task<Result> DeleteInterviewRoundAsync(int id);
         Task<Result<IEnumerable<GetCandidateSelectionDto>>> GetCandidateSelectionsAsync();
         Task<Result<IEnumerable<GetCandidateSelectionDto>>> GetCollegeCandidateSelectionsAsync(int collegeId);
@@ -20,6 +23,7 @@ namespace CampusHiring.Api.Application.Contracts
         Task<Result<IEnumerable<GetInterviewDto>>> GetInterviewsAsync();
         Task<Result> ScheduleInterviews(int companyId, int collegeId, int batch, DateTime interviewDate,  int duration = 60, int roundNumber = 1);
         Task<Result> SubmitFeedbackAsync(int id, int companyId, JsonPatchDocument<PatchInterviewDto> patchDoc);
+        Task<Result> UpdateCandidateSelection( int companyId, string studentId, UpdateCandidateSelectionDto updateCandidateSelectionDto);
         Task<Result> UpdateInterviewAsync(int id, UpdateInterviewDto interviewDto);
         Task<Result> UpdateInterviewRoundAsync(int id, int companyId, UpdateInterviewRoundDto roundDto);
     }

@@ -123,5 +123,8 @@ public class InterviewMappingProfile : Profile
         CreateMap<CandidateSelection, GetCandidateSelectionDto>()
             .ForMember(d => d.StudentName, cfg => cfg.MapFrom(s => s.Student != null ? s.Student.User!.UserName : string.Empty))
             .ForMember(d => d.CompanyName, cfg => cfg.MapFrom(s => s.Company != null ? s.Company.Name : string.Empty));
+
+        CreateMap<UpdateCandidateSelectionDto, CandidateSelection>();
+        CreateMap<CreateCandidateSelectionDto, CandidateSelection>();
     }
 }
