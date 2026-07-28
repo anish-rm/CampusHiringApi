@@ -10,3 +10,6 @@ public class UpdateCandidateSelectionDto
     public string Feedback { get; set; } = string.Empty;
     public string Recommendation { get; set; } = string.Empty;
 }
+
+
+
