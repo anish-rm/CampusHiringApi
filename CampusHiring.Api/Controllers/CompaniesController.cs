@@ -2,16 +2,10 @@
 using CampusHiring.Api.Application.DTOs.Company;
 using CampusHiring.Api.Application.DTOs.Interview;
 using CampusHiring.Api.Common.Constants;
-using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CampusHiring.Api.Controllers
 {
@@ -22,6 +16,8 @@ namespace CampusHiring.Api.Controllers
     {
         // GET: api/Companies
         [HttpGet]
+        //[OutputCache]
+        [OutputCache(PolicyName = CacheConstants.AuthenticatedUserCachingPolicy)]
         public async Task<ActionResult<IEnumerable<GetCompanyDto>>> GetCompanies()
         {
             var result = await companiesService.GetCompaniesAsync();

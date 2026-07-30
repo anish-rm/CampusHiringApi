@@ -1,6 +1,8 @@
 using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.MappingProfiles;
 using CampusHiring.Api.Application.Services;
+using CampusHiring.Api.CachePolicies;
+using CampusHiring.Api.Common.Constants;
 using CampusHiring.Api.Common.Models.Config;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -76,6 +78,16 @@ builder.Services.AddControllers()
 
 builder.Services.AddMemoryCache();
 
+//builder.Services.AddOutputCache();
+builder.Services.AddOutputCache(options =>
+{
+    options.AddPolicy(CacheConstants.AuthenticatedUserCachingPolicy, builder =>
+    {
+        builder.AddPolicy<AuthenticatedUserCachingPolicy>()
+        .SetCacheKeyPrefix(CacheConstants.AuthenticatedUserCachingPolicyTag);
+    }, true);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -89,6 +101,9 @@ app.MapGroup("api/defaultauth").MapIdentityApi<User>();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseOutputCache();
+
 
 app.MapControllers();
 
