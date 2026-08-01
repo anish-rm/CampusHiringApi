@@ -7,6 +7,7 @@ using CampusHiring.Api.Common.Models.Paging;
 using CampusHiring.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CampusHiring.Api.Controllers
 {
@@ -19,6 +20,7 @@ namespace CampusHiring.Api.Controllers
         // GET: api/Assessments
         [HttpGet]
         [Authorize(Roles = RoleNames.Admin)]
+        [EnableRateLimiting(RateLimitingConstants.PerUserPolicy)]
         public async Task<ActionResult<PagedResult<GetAssessmentsDto>>> GetAssessments([FromQuery]PaginationParameter paginationParameter)
         {
             var assessments = await assessmentsService.GetAssessmentsAsync(paginationParameter);

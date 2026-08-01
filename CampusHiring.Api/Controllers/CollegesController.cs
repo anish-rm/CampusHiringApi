@@ -5,6 +5,7 @@ using CampusHiring.Api.AuthorizationFilter;
 using CampusHiring.Api.Common.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CampusHiring.Api.Controllers
 {
@@ -30,6 +31,7 @@ namespace CampusHiring.Api.Controllers
         }
 
         [HttpGet("{id}/students")]
+        [EnableRateLimiting(RateLimitingConstants.FixedPolicy)]
         public async Task<ActionResult<IEnumerable<GetStudentDto>>> GetCollegeStudents(int id)
         {
             var result = await collegesService.GetCollegeStudentsAsync(id);
