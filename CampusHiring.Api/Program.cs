@@ -10,162 +10,224 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Events;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//adding connection string
-var connectionString = builder.Configuration.GetConnectionString("CampusHiringConnectionString");
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateBootstrapLogger();
 
-builder.Services.AddDbContext<CampusHiringDbContext>(options =>
+try
 {
-    options.UseSqlServer(connectionString);
-});
+    Log.Information("Starting CampusHiring API");
 
-// Add services to the container.
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+    );
+    //adding connection string
+    var connectionString = builder.Configuration.GetConnectionString("CampusHiringConnectionString");
 
-builder.Services.AddIdentityApiEndpoints<User>()
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<CampusHiringDbContext>();
+    Log.Information("Using connection string: {ConnectionString}", connectionString);
 
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
-
-if (string.IsNullOrEmpty(jwtSettings.Key))
-{
-    throw new InvalidOperationException("JWT settings are not properly configured. Please configure key to continue");
-}
-
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    .AddJwtBearer(options =>
+    builder.Services.AddDbContext<CampusHiringDbContext>(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.UseSqlServer(connectionString);
+    });
+
+    // Add services to the container.
+
+    builder.Services.AddIdentityApiEndpoints<User>()
+        .AddRoles<IdentityRole>()
+        .AddEntityFrameworkStores<CampusHiringDbContext>();
+
+    builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+    var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
+
+    if (string.IsNullOrEmpty(jwtSettings.Key))
+    {
+        Log.Fatal("JWT settings are not properly configured. Please configure key to continue");
+        throw new InvalidOperationException("JWT settings are not properly configured. Please configure key to continue");
+    }
+
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+        .AddJwtBearer(options =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings.Issuer,
-            ValidAudience = jwtSettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
-            ClockSkew = TimeSpan.Zero
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings.Issuer,
+                ValidAudience = jwtSettings.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+
+    builder.Services.AddAuthorization();
+
+    builder.Services.AddScoped<IAssessmentsService, AssessmentsService>();
+    builder.Services.AddScoped<IUsersService, UsersService>();
+    builder.Services.AddScoped<ICollegesService, CollegesService>();
+    builder.Services.AddScoped<ICompaniesService, CompaniesService>();
+    builder.Services.AddScoped<IInterviewsService, InterviewsService>();
+
+    builder.Services.AddAutoMapper(cfg => { }, typeof(AssessmentMappingProfile).Assembly);
+
+    builder.Services.AddControllers()
+        .AddNewtonsoftJson()
+        .AddJsonOptions(opt =>
+        {
+            opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        });
+
+    builder.Services.AddMemoryCache();
+
+    //builder.Services.AddOutputCache();
+    builder.Services.AddOutputCache(options =>
+    {
+        options.AddPolicy(CacheConstants.AuthenticatedUserCachingPolicy, builder =>
+        {
+            builder.AddPolicy<AuthenticatedUserCachingPolicy>()
+            .SetCacheKeyPrefix(CacheConstants.AuthenticatedUserCachingPolicyTag);
+        }, true);
+    });
+
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.AddFixedWindowLimiter(RateLimitingConstants.FixedPolicy, opt =>
+        {
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.PermitLimit = 5;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            opt.QueueLimit = 0;
+        });
+
+        options.AddPolicy(RateLimitingConstants.PerUserPolicy, context =>
+        {
+            var username = context.User?.Identity?.Name ?? "anonymous";
+
+            return RateLimitPartition.GetSlidingWindowLimiter(username, _ => new SlidingWindowRateLimiterOptions
+            {
+                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 12,
+                SegmentsPerWindow = 6,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+            });
+        });
+
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        {
+            var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+            return RateLimitPartition.GetFixedWindowLimiter(ipAddress, _ => new FixedWindowRateLimiterOptions
+            {
+                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 200,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 10,
+            });
+        });
+
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+        options.OnRejected = async (context, cancellationToken) =>
+        {
+            if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+            {
+                context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
+            }
+            context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            context.HttpContext.Response.ContentType = "application/json";
+
+            await context.HttpContext.Response.WriteAsJsonAsync(new
+            {
+                error = "Too many requests",
+                message = "Rate limit exceeded",
+                retryAfter = retryAfter.TotalSeconds
+            }, cancellationToken: cancellationToken);
         };
     });
 
-builder.Services.AddAuthorization();
+    var app = builder.Build();
 
-builder.Services.AddScoped<IAssessmentsService, AssessmentsService>();
-builder.Services.AddScoped<IUsersService, UsersService>();
-builder.Services.AddScoped<ICollegesService, CollegesService>();
-builder.Services.AddScoped<ICompaniesService, CompaniesService>();
-builder.Services.AddScoped<IInterviewsService, InterviewsService>();
+    //app.UseExceptionHandler();
 
-builder.Services.AddAutoMapper(cfg => { }, typeof(AssessmentMappingProfile).Assembly);
-
-builder.Services.AddControllers()
-    .AddNewtonsoftJson()
-    .AddJsonOptions(opt =>
+    app.UseSerilogRequestLogging(options =>
     {
-        opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+
+        options.GetLevel = (httpContext, elapsed, ex) => ex != null
+        ? LogEventLevel.Error
+        : httpContext.Response.StatusCode >= 500
+            ? LogEventLevel.Error
+            : httpContext.Response.StatusCode >= 400
+                ? LogEventLevel.Warning
+                : LogEventLevel.Information;
+
+        options.EnrichDiagnosticContext = (diagonasticContext, httpContext) =>
+        {
+            diagonasticContext.Set("UserName", httpContext?.User?.Identity?.Name ?? "anonymous");
+            diagonasticContext.Set("RemoteIP", httpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+
+            if (httpContext?.User?.Identity?.IsAuthenticated == true)
+            {
+                var userId = httpContext.User.FindFirst("sub")?.Value ?? "unknown";
+                diagonasticContext.Set("UserId", userId);
+            }
+        };
     });
 
-builder.Services.AddMemoryCache();
-
-//builder.Services.AddOutputCache();
-builder.Services.AddOutputCache(options =>
-{
-    options.AddPolicy(CacheConstants.AuthenticatedUserCachingPolicy, builder =>
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
     {
-        builder.AddPolicy<AuthenticatedUserCachingPolicy>()
-        .SetCacheKeyPrefix(CacheConstants.AuthenticatedUserCachingPolicyTag);
-    }, true);
-});
+        app.MapOpenApi();
+    }
 
-builder.Services.AddRateLimiter(options =>
-{
-    options.AddFixedWindowLimiter(RateLimitingConstants.FixedPolicy, opt =>
-    {
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.PermitLimit = 5;
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 0;
-    });
+    app.MapGroup("api/defaultauth").MapIdentityApi<User>();
 
-    options.AddPolicy(RateLimitingConstants.PerUserPolicy, context =>
-    {
-        var username = context.User?.Identity?.Name ?? "anonymous";
+    app.UseHttpsRedirection();
 
-        return RateLimitPartition.GetSlidingWindowLimiter(username, _ => new SlidingWindowRateLimiterOptions
-        {
-            Window = TimeSpan.FromMinutes(1),
-            PermitLimit = 12,
-            SegmentsPerWindow = 6,
-            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-            QueueLimit = 0,
-        });
-    });
+    app.UseRateLimiter();
 
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
-    {
-        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    app.UseAuthorization();
 
-        return RateLimitPartition.GetFixedWindowLimiter(ipAddress, _ => new FixedWindowRateLimiterOptions
-        {
-            Window = TimeSpan.FromMinutes(1),
-            PermitLimit = 200,
-            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-            QueueLimit = 10,
-        });
-    });
+    app.UseOutputCache();
 
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    options.OnRejected = async (context, cancellationToken) =>
-    {
-        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
-        {
-            context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
-        }
-        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        context.HttpContext.Response.ContentType = "application/json";
+    app.MapControllers();
 
-        await context.HttpContext.Response.WriteAsJsonAsync(new
-        {
-            error = "Too many requests",
-            message = "Rate limit exceeded",
-            retryAfter = retryAfter.TotalSeconds
-        }, cancellationToken: cancellationToken);
-    };
-});
+    Log.Information("CampusHiring API started successfully");
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
+    app.Run();
 }
-
-app.MapGroup("api/defaultauth").MapIdentityApi<User>();
-
-app.UseHttpsRedirection();
-
-app.UseRateLimiter();
-
-app.UseAuthorization();
-
-app.UseOutputCache();
-
-
-app.MapControllers();
-
-app.Run();
+catch(Exception ex)
+{
+    Log.Fatal(ex, "Application failed to start.");
+}
+finally
+{
+    Log.Information("Application shutdown");
+    Log.CloseAndFlush();
+}
