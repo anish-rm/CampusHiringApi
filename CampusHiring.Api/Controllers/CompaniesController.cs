@@ -1,4 +1,5 @@
-﻿using CampusHiring.Api.Application.Contracts;
+﻿using Asp.Versioning;
+using CampusHiring.Api.Application.Contracts;
 using CampusHiring.Api.Application.DTOs.Company;
 using CampusHiring.Api.Application.DTOs.Interview;
 using CampusHiring.Api.Common.Constants;
@@ -9,8 +10,9 @@ using Microsoft.AspNetCore.OutputCaching;
 
 namespace CampusHiring.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
     [Authorize]
     public class CompaniesController(ICompaniesService companiesService) : BaseApiController
     {
