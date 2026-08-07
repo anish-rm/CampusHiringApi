@@ -13,8 +13,11 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
+using Swashbuckle.AspNetCore.Filters;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -183,9 +186,63 @@ try
     })
     .AddApiExplorer(options =>
     {
-        //options.GroupNameFormat = "'v'VVV";
+        options.GroupNameFormat = "'v'VVV";
         options.SubstituteApiVersionInUrl = true;
     });
+
+    builder.Services.AddEndpointsApiExplorer();
+
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Version = "v1",
+            Title = "Campus Hiring Api",
+            Description = "Api for managing assessments, interviews in colleges",
+            Contact = new OpenApiContact
+            {
+                Name = "Anish",
+                Email = "anishmahi946@gmail.com"
+            },
+            License = new OpenApiLicense
+            {
+                Name = "MIT License",
+                Url = new Uri("https://opensource.org/licenses/MIT")
+            }
+        });
+
+        options.SwaggerDoc("v2", new OpenApiInfo
+        {
+            Version = "v2",
+            Title = "Campus Hiring Api V2",
+            Description = "Version 2 Api for managing assessments, interviews in colleges",
+        });
+
+        var xmlfile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlpath = Path.Combine(AppContext.BaseDirectory, xmlfile);
+        if (File.Exists(xmlpath))
+        {
+            options.IncludeXmlComments(xmlpath);
+        }
+
+        options.EnableAnnotations();
+
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization header using the bearer scheme",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        });
+
+        options.ExampleFilters();
+
+        options.OperationFilter<SecurityRequirementsOperationFilter>(true, "Bearer");
+    });
+
+    builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
 
 
     builder.Services.AddHealthChecks()
@@ -227,8 +284,22 @@ try
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
-    { 
-        app.MapOpenApi();
+    {
+        //app.MapOpenApi();
+
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "Campus Hiring Api v1");
+            options.SwaggerEndpoint("/swagger/v2/swagger.json", "Campus Hiring Api v2");
+            options.RoutePrefix = "swagger";
+            options.DocumentTitle = "Campus Hiring Api Documentation";
+            options.DisplayRequestDuration();
+            options.EnableDeepLinking();
+            options.EnableFilter();
+            options.ShowExtensions();
+            options.EnableValidator();
+        });
     }
 
     app.MapGroup("api/defaultauth").MapIdentityApi<User>();
