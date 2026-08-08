@@ -8,17 +8,18 @@ using CampusHiring.Api.Common.Results;
 using CampusHiring.Api.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace CampusHiring.Api.Application.Services;
 
-public class CollegesService(CampusHiringDbContext context, IMapper mapper, IMemoryCache cache) : ICollegesService
+public class CollegesService(CampusHiringDbContext context, IMapper mapper, IMemoryCache cache, ILogger<CollegesService> logger) : ICollegesService
 {
 
     private const string CollegeListCacheName = "colleges_list_";
     private const string CollegeCacheName = "colleges_";
     public async Task<Result<IEnumerable<GetCollegesDto>>> GetCollegesAsync()
     {
-
+        logger.LogInformation("Getting colleges..");
         var cachekey = CollegeListCacheName;
 
         if(!cache.TryGetValue(cachekey, out IEnumerable<GetCollegesDto>? colleges))

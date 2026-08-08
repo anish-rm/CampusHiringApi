@@ -240,6 +240,7 @@ try
         options.ExampleFilters();
 
         options.OperationFilter<SecurityRequirementsOperationFilter>(true, "Bearer");
+        options.OrderActionsBy(apiDesc => $"{apiDesc.RelativePath}_{apiDesc.HttpMethod}");
     });
 
     builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();

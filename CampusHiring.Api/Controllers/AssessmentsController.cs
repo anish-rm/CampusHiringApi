@@ -37,6 +37,13 @@ namespace CampusHiring.Api.Controllers
             return ToActionResult(assessment);
         }
 
+        /// <summary>
+        /// Returns a list of assessments of the given college.
+        /// </summary>
+        /// <param name="collegeId">The ID of the college.</param>
+        /// <returns>
+        /// An asynchronous operation that returns a collection of assessment objects.
+        /// </returns>
         [HttpGet("college/{collegeId}")]
         [CollegeOrSystemAdmin]
         public async Task<ActionResult<PagedResult<GetAssessmentDto>>> GetCollegeAssessment(int collegeId, [FromQuery]AssessmentFilterParameter filter, [FromQuery]PaginationParameter paginationParameter)
